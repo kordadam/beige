@@ -1,14 +1,16 @@
 #include "Game.hpp"
 
+#include <core/Logger.hpp>
+
 #include <iostream>
 
 Game::Game() :
 IGame({ 100u, 100u, 1280u, 720u, "Beige Testbed" }) {
-    std::cout << "Game object has been created!\n";
+    beige::core::Logger::info("Game object has been created!");
 }
 
 Game::~Game() {
-    std::cout << "Game object has been destroyed!\n";
+    beige::core::Logger::info("Game object has been destroyed!");
 }
 
 auto Game::update(const float deltaTime) -> bool {

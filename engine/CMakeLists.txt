@@ -6,6 +6,11 @@ set(SRC
     src/core/App.cpp
     src/core/App.hpp
     src/core/AppTypes.hpp
+    src/core/Logger.cpp
+    src/core/Logger.hpp
+    src/platform/Platform.hpp
+    src/platform/PlatformTypes.hpp
+    src/platform/PlatformWin32.cpp
     src/Defines.hpp
     src/Entry.hpp
     src/IGame.hpp
@@ -13,21 +18,24 @@ set(SRC
 
 if(WIN32)
     find_path(VULKAN_INCLUDE_DIR
-        NAMES vulkan/vulkan.hpp
+        NAMES
+            vulkan/vulkan.hpp
         PATHS
             $ENV{VULKAN_SDK}/Include
     )
 
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         find_library(VULKAN_LIBRARY
-            NAMES vulkan-1
+            NAMES
+                vulkan-1
             PATHS
                 $ENV{VULKAN_SDK}/Lib
                 $ENV{VULKAN_SDK}/Bin
         )
     elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
         find_library(VULKAN_LIBRARY
-            NAMES vulkan-1
+            NAMES
+                vulkan-1
             PATHS
                 $ENV{VULKAN_SDK}/Lib32
                 $ENV{VULKAN_SDK}/Bin32

@@ -2,6 +2,7 @@
 
 #include "IGame.hpp"
 #include "core/App.hpp"
+#include "core/Logger.hpp"
 
 #include <memory>
 #include <iostream>
@@ -19,13 +20,13 @@ int main() {
         std::unique_ptr<beige::IGame> game { beige::createGame() };
         app = std::make_unique<beige::core::App>(std::move(game));
     } catch (const std::exception& exception) {
-        std::cout << "Application failed to create!\n";
-        std::cout << exception.what() << "\n"; // TODO: replace cout by Logger::fatal
+        const std::string exceptionMessage { exception.what() };
+        beige::core::Logger::fatal("Application failed to create: " + exceptionMessage);
         return 1;
     }
 
     if (!app->run()) {
-        std::cout << "Application did not shutdown gracefully!\n"; // TODO: replace cout by Logger::info
+        beige::core::Logger::info("Application did not shutdown gracefully!");
         return 2;
     }
 
