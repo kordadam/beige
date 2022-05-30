@@ -6,6 +6,10 @@ set(SRC
     src/core/App.cpp
     src/core/App.hpp
     src/core/AppTypes.hpp
+    src/core/Event.hpp
+    src/core/Input.cpp
+    src/core/Input.hpp
+    src/core/InputTypes.hpp
     src/core/Logger.cpp
     src/core/Logger.hpp
     src/platform/Platform.hpp

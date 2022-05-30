@@ -2,6 +2,7 @@
 
 #include "../Defines.hpp"
 #include "../core/AppTypes.hpp"
+#include "../core/Input.hpp"
 #include "PlatformTypes.hpp"
 
 #include <string>
@@ -24,16 +25,24 @@ struct State {
 
 class Platform final {
 public:
-    Platform(const core::AppConfig& appConfig);
+    Platform(
+        const core::AppConfig& appConfig,
+        core::Input& input
+    );
     ~Platform();
 
     static auto consoleWrite(const std::string& message, const ConsoleColor consoleColor) -> void;
 
-    auto platformPumpMessages() -> bool;
+    auto pumpMessages() -> bool;
     auto shutdown() -> void;
+
+#ifdef BEIGE_PLATFORM_WIN32
+    auto processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam) -> LRESULT;
+#endif
 
 private:
     State m_state;
+    core::Input& m_input;
 };
 
 } // namespace platform
