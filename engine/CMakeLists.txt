@@ -6,6 +6,8 @@ set(SRC
     src/core/App.cpp
     src/core/App.hpp
     src/core/AppTypes.hpp
+    src/core/Clock.cpp
+    src/core/Clock.hpp
     src/core/Event.hpp
     src/core/Input.cpp
     src/core/Input.hpp

@@ -8,12 +8,13 @@ namespace core {
 App::App(std::unique_ptr<IGame> game) :
 m_isRunning { true },
 m_isSuspended { false },
-m_previousTimeStamp { },
+m_clock { },
+m_lastTime { 0.0f },
 m_input { },
 m_platform { game->getAppConfig(), m_input },
 m_game { std::move(game) } {
     m_input.subscribe(
-        [&](const KeyEventCode& keyEventCode, const Key& key) {
+        [&](const KeyEventCode& keyEventCode, const Key& key) -> void {
             switch (keyEventCode) {
             case KeyEventCode::Pressed: {
                 if (key == Key::Escape) {
@@ -59,7 +60,8 @@ App::~App() {
 }
 
 auto App::run() -> bool {
-    m_previousTimeStamp = std::chrono::high_resolution_clock::now();
+    m_clock.update();
+    m_lastTime = m_clock.getElapsedTime();
 
     while (m_isRunning) {
         if (!m_platform.pumpMessages()) {
@@ -67,18 +69,15 @@ auto App::run() -> bool {
         }
 
         if (!m_isSuspended) {
-            const auto currentTimeStamp { std::chrono::high_resolution_clock::now() };
-            const float deltaTime {
-                std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(
-                    currentTimeStamp - m_previousTimeStamp
-                ).count()
-            };
+            m_clock.update();
+            const float currentTime { m_clock.getElapsedTime() };
+            const float deltaTime { currentTime - m_lastTime };
 
             if (!m_game->update(deltaTime)) {
                 Logger::fatal("Game update failed, shutting down!");
             }
 
-            m_previousTimeStamp = currentTimeStamp;
+            m_lastTime = currentTime;
         }
     }
 

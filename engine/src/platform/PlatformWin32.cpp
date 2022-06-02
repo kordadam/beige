@@ -20,8 +20,8 @@ m_state { },
 m_input { input } {
     m_state.hInstance = GetModuleHandleA(0);
 
-    const HICON icon{ LoadIcon(m_state.hInstance, IDI_APPLICATION) };
-    WNDCLASSA windowClass{ 0 };
+    const HICON icon { LoadIcon(m_state.hInstance, IDI_APPLICATION) };
+    WNDCLASSA windowClass { 0 };
     windowClass.style = CS_DBLCLKS;
     windowClass.lpfnWndProc = processMessageCallback;
     windowClass.cbClsExtra = 0;
@@ -33,14 +33,14 @@ m_input { input } {
     windowClass.lpszClassName = "NotidokWindowClass";
 
     if (!RegisterClassA(&windowClass)) {
-        const std::string message{ "Window registration failed!" };
+        const std::string message { "Window registration failed!" };
         MessageBoxA(0, message.c_str(), "Error", MB_ICONEXCLAMATION | MB_OK);
         throw std::exception(message.c_str());
     }
 
-    const uint32_t windowStyle{ WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_THICKFRAME };
-    const uint32_t windowExStyle{ WS_EX_APPWINDOW };
-    RECT borderRect{ 0, 0, 0, 0 };
+    const uint32_t windowStyle { WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_THICKFRAME };
+    const uint32_t windowExStyle { WS_EX_APPWINDOW };
+    RECT borderRect { 0, 0, 0, 0 };
     AdjustWindowRectEx(&borderRect, windowStyle, 0, windowExStyle);
 
     const uint32_t xWindow { appConfig.xStartPos + borderRect.left };
@@ -66,11 +66,10 @@ m_input { input } {
     };
 
     if (hwnd == 0) {
-        const std::string message{ "Window creation failed!" };
+        const std::string message { "Window creation failed!" };
         MessageBoxA(0, message.c_str(), "Error", MB_ICONEXCLAMATION | MB_OK);
         throw std::exception(message.c_str());
-    }
-    else {
+    } else {
         m_state.hnwd = hwnd;
     }
 

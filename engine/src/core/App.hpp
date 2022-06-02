@@ -4,9 +4,9 @@
 #include "Input.hpp"
 #include "../platform/Platform.hpp"
 #include "../IGame.hpp"
+#include "Clock.hpp"
 
 #include <memory>
-#include <chrono>
 
 namespace beige {
 namespace core {
@@ -19,11 +19,10 @@ public:
     auto run() -> bool;
 
 private:
-    using TimeStamp = std::chrono::high_resolution_clock::time_point;
-
     bool m_isRunning;
     bool m_isSuspended;
-    TimeStamp m_previousTimeStamp;
+    Clock m_clock;
+    float m_lastTime;
     Input m_input;
     platform::Platform m_platform;
     std::unique_ptr<IGame> m_game;
