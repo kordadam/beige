@@ -163,14 +163,14 @@ auto Input::processKey(const Key key, const bool isPressed) -> void {
 
     if (it != m_currentKeyboardState.end() && it->second != isPressed) {
         it->second = isPressed;
-        notifyListeners(isPressed ? KeyEventCode::Pressed : KeyEventCode::Released, key);
+        KeyEvent::notifyListeners(isPressed ? KeyEventCode::Pressed : KeyEventCode::Released, key);
     }
 }
 
 auto Input::processButton(const Button button, const bool isPressed) -> void {
     if (m_currentMouseState.buttons.at(button) != isPressed) {
         m_currentMouseState.buttons.at(button) = isPressed;
-        notifyListeners(isPressed ? MouseEventCode::Pressed : MouseEventCode::Released, m_currentMouseState);
+        MouseEvent::notifyListeners(isPressed ? MouseEventCode::Pressed : MouseEventCode::Released, m_currentMouseState);
     }
 }
 
@@ -178,7 +178,7 @@ auto Input::processMouseMove(const int32_t xPos, const int32_t yPos) -> void {
     if (m_currentMouseState.xPos != xPos || m_currentMouseState.yPos != yPos) {
         m_currentMouseState.xPos = xPos;
         m_currentMouseState.yPos = yPos;
-        notifyListeners(MouseEventCode::Moved, m_currentMouseState);
+        MouseEvent::notifyListeners(MouseEventCode::Moved, m_currentMouseState);
     }
 }
 

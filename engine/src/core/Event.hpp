@@ -22,20 +22,18 @@ protected:
     std::vector<Callback> m_listeners;
 
     virtual auto notifyListeners(const Arguments&... arguments) -> void;
-
-private:
-    static inline Subscription m_subscriptionCount { 0u };
 };
 
 template<typename... Arguments>
 auto Event<Arguments...>::subscribe(const Callback& callback) -> Subscription {
+    Subscription subscription { static_cast<Subscription>(m_listeners.size()) };
     m_listeners.push_back(callback);
-    return m_subscriptionCount++;
+    return subscription;
 }
 
 template<typename... Arguments>
 auto Event<Arguments...>::unsubscribe(const Subscription subscription) -> void {
-    //m_listeners.erase(subscription);
+    m_listeners.erase(m_listeners.begin() + subscription);
 }
 
 template<typename... Arguments>

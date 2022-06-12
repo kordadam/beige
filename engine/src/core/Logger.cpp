@@ -26,7 +26,18 @@ auto Logger::reportAssertionFailure(
     const std::string& file,
     const uint32_t line
 ) -> void {
-    std::cerr << "Assertion failure: " << expression << ", message: " << message << ", in file: " << file << ", line: " << line << "\n";
+    const std::string assertionFailureMessage {
+        "Assertion failure: " +
+        expression +
+        ", message: " +
+        message +
+        ", in file: " +
+        file +
+        ", line: " +
+        std::to_string(line)
+    };
+
+    fatal(assertionFailureMessage);
 }
 
 auto Logger::trace(const std::string& message) -> void {

@@ -6,6 +6,7 @@ set(SRC
     src/core/App.cpp
     src/core/App.hpp
     src/core/AppTypes.hpp
+    src/core/Assertions.hpp
     src/core/Clock.cpp
     src/core/Clock.hpp
     src/core/Event.hpp
@@ -17,6 +18,13 @@ set(SRC
     src/platform/Platform.hpp
     src/platform/PlatformTypes.hpp
     src/platform/PlatformWin32.cpp
+    src/renderer/vulkan/VulkanBackend.cpp
+    src/renderer/vulkan/VulkanBackend.hpp
+    src/renderer/vulkan/VulkanTypes.hpp
+    src/renderer/IRendererBackend.hpp
+    src/renderer/RendererFrontend.cpp
+    src/renderer/RendererFrontend.hpp
+    src/renderer/RendererTypes.hpp
     src/Defines.hpp
     src/Entry.hpp
     src/IGame.hpp
@@ -71,7 +79,7 @@ endif()
 include_directories(
     ${VULKAN_INCLUDE_DIRS}
 )
-add_definitions(-DBEIGE_EXPORT)
+add_definitions(-DBEIGE_EXPORT -DBEIGE_DEBUG)
 add_library(engine SHARED ${SRC})
 target_link_libraries(engine ${VULKAN_LIBRARIES})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)

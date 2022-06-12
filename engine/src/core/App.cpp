@@ -2,6 +2,8 @@
 
 #include "Logger.hpp"
 
+#include <algorithm>
+
 namespace beige {
 namespace core {
 
@@ -12,51 +14,70 @@ m_clock { },
 m_lastTime { 0.0f },
 m_input { },
 m_platform { game->getAppConfig(), m_input },
+m_rendererFrontend { game->getAppConfig().name, m_platform },
 m_game { std::move(game) } {
-    m_input.subscribe(
-        [&](const KeyEventCode& keyEventCode, const Key& key) -> void {
-            switch (keyEventCode) {
-            case KeyEventCode::Pressed: {
-                if (key == Key::Escape) {
-                    m_isRunning = false;
+    m_keyEventSubscriptions.push_back(
+        m_input.KeyEvent::subscribe(
+            [&](const KeyEventCode& keyEventCode, const Key& key) -> void {
+                switch (keyEventCode) {
+                case KeyEventCode::Pressed: {
+                    if (key == Key::Escape) {
+                        m_isRunning = false;
+                    }
+                    else {
+                        Logger::debug("Key pressed!");
+                    }
+                    break;
                 }
-                else {
-                    Logger::debug("Key pressed!");
+                case KeyEventCode::Released: {
+                    Logger::debug("Key released!");
+                    break;
                 }
-                break;
+                }
             }
-            case KeyEventCode::Released: {
-                Logger::debug("Key released!");
-                break;
-            }
-            }
-        }
+        )
     );
 
-    m_input.subscribe(
-        [](const MouseEventCode& mouseEventCode, const MouseState& mouseState) -> void {
-            switch (mouseEventCode) {
-            case MouseEventCode::Pressed: {
-                Logger::debug("Mouse button pressed!");
-                break;
+    m_mouseEventSubscriptions.push_back(
+        m_input.MouseEvent::subscribe(
+            [](const MouseEventCode& mouseEventCode, const MouseState& mouseState) -> void {
+                switch (mouseEventCode) {
+                case MouseEventCode::Pressed: {
+                    Logger::debug("Mouse button pressed!");
+                    break;
+                }
+                case MouseEventCode::Released: {
+                    Logger::debug("Mouse button released!");
+                    break;
+                }
+                case MouseEventCode::Moved: {
+                    break;
+                }
+                case MouseEventCode::Wheel: {
+                    break;
+                }
+                }
             }
-            case MouseEventCode::Released: {
-                Logger::debug("Mouse button released!");
-                break;
-            }
-            case MouseEventCode::Moved: {
-                break;
-            }
-            case MouseEventCode::Wheel: {
-                break;
-            }
-            }
-        }
+        )
     );
 }
 
 App::~App() {
+    std::for_each(
+        m_keyEventSubscriptions.begin(),
+        m_keyEventSubscriptions.end(),
+        [&](const Input::KeyEvent::Subscription& subscription) -> void {
+            m_input.KeyEvent::unsubscribe(subscription);
+        }
+    );
 
+    std::for_each(
+        m_mouseEventSubscriptions.begin(),
+        m_mouseEventSubscriptions.end(),
+        [&](const Input::MouseEvent::Subscription& subscription) -> void {
+            m_input.MouseEvent::unsubscribe(subscription);
+        }
+    );
 }
 
 auto App::run() -> bool {
@@ -75,7 +96,15 @@ auto App::run() -> bool {
 
             if (!m_game->update(deltaTime)) {
                 Logger::fatal("Game update failed, shutting down!");
+                break;
             }
+
+            if (!m_game->render(deltaTime)) {
+                Logger::fatal("Game render failed, shutting down!");
+                break;
+            }
+
+            m_input.update(deltaTime);
 
             m_lastTime = currentTime;
         }

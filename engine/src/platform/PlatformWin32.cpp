@@ -2,6 +2,8 @@
 
 #ifdef BEIGE_PLATFORM_WIN32
 
+#include "../core/Logger.hpp"
+
 #include <map>
 #include <string>
 #include <iostream>
@@ -104,8 +106,8 @@ auto Platform::pumpMessages() -> bool {
     return true;
 }
 
-auto Platform::shutdown() -> void {
-
+auto Platform::getVulkanRequiredExtensionNames() -> std::vector<const char*> {
+    return std::vector<const char*> { "VK_KHR_win32_surface" };
 }
 
 auto Platform::processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam) -> LRESULT {
@@ -188,6 +190,35 @@ auto Platform::processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM
     }
 
     return DefWindowProcA(hwnd, message, wParam, lParam);
+}
+
+auto Platform::createVulkanSurface(const renderer::vulkan::Context& vulkanContext) -> std::optional<VkSurfaceKHR> {
+    std::optional<VkSurfaceKHR> surfaceOptional { std::nullopt };
+
+    VkWin32SurfaceCreateInfoKHR surfaceCreateInfo {
+        VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, // sType
+        nullptr, // pNext
+        0u, // flags
+        m_state.hInstance, // hinstance
+        m_state.hnwd // hwnd
+    };
+
+    const VkResult result {
+        vkCreateWin32SurfaceKHR(
+            vulkanContext.instance,
+            &surfaceCreateInfo,
+            vulkanContext.allocationCallbacks,
+            &m_state.surface
+        )
+    };
+
+    if (result == VK_SUCCESS) {
+        surfaceOptional = m_state.surface;
+    } else {
+        core::Logger::fatal("Failed to create Vulkan surface!");
+    }
+
+    return surfaceOptional;
 }
 
 LRESULT CALLBACK processMessageCallback(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam) {

@@ -9,3 +9,7 @@
 #else
 #define BEIGE_API __declspec(dllimport)
 #endif // BEIGE_EXPORT
+
+#define debugBreak() __debugbreak()
+
+#define STATIC_ASSERT static_assert

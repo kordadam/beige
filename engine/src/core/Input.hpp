@@ -10,15 +10,11 @@ namespace beige {
 namespace core {
 
 class BEIGE_API Input final :
-    public Event<KeyEventCode, Key>,
-    public Event<MouseEventCode, MouseState> {
+public Event<KeyEventCode, Key>,
+public Event<MouseEventCode, MouseState> {
 public:
-    using Event<KeyEventCode, Key>::subscribe;
-    using Event<KeyEventCode, Key>::unsubscribe;
-    using Event<KeyEventCode, Key>::notifyListeners;
-    using Event<MouseEventCode, MouseState>::subscribe;
-    using Event<MouseEventCode, MouseState>::unsubscribe;
-    using Event<MouseEventCode, MouseState>::notifyListeners;
+    using KeyEvent = Event<KeyEventCode, Key>;
+    using MouseEvent = Event<MouseEventCode, MouseState>;
 
     Input();
     ~Input();
