@@ -16,7 +16,7 @@ LRESULT CALLBACK processMessageCallback(HWND hwnd, uint32_t message, WPARAM wPar
 
 Platform::Platform(
     const core::AppConfig& appConfig,
-    core::Input& input
+    std::shared_ptr<core::Input> input
 ) :
 m_state { },
 m_input { input } {
@@ -138,13 +138,13 @@ auto Platform::processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM
     case WM_SYSKEYUP: {
         const core::Key key{ static_cast<core::Key>(wParam) };
         const bool isPressed{ message == WM_KEYDOWN || message == WM_SYSKEYDOWN };
-        m_input.processKey(key, isPressed);
+        m_input->processKey(key, isPressed);
         break;
     }
     case WM_MOUSEMOVE: {
         const int32_t xPosition{ static_cast<int32_t>(GET_X_LPARAM(lParam)) };
         const int32_t yPosition{ static_cast<int32_t>(GET_Y_LPARAM(lParam)) };
-        m_input.processMouseMove(xPosition, yPosition);
+        m_input->processMouseMove(xPosition, yPosition);
         break;
     }
     case WM_MOUSEWHEEL: {
@@ -152,7 +152,7 @@ auto Platform::processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM
         if (zDelta != 0) {
             zDelta = (zDelta < 0) ? -1 : 1;
         }
-        m_input.processMouseWheel(zDelta);
+        m_input->processMouseWheel(zDelta);
         break;
     }
     case WM_LBUTTONDOWN: [[fallthrough]];
@@ -183,7 +183,7 @@ auto Platform::processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM
         }
 
         if (button != core::Button::Invalid) {
-            m_input.processButton(button, isPressed);
+            m_input->processButton(button, isPressed);
         }
         break;
     }
@@ -192,7 +192,10 @@ auto Platform::processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM
     return DefWindowProcA(hwnd, message, wParam, lParam);
 }
 
-auto Platform::createVulkanSurface(const renderer::vulkan::Context& vulkanContext) -> std::optional<VkSurfaceKHR> {
+auto Platform::createVulkanSurface(
+    const VkInstance& instance,
+    const VkAllocationCallbacks* allocationCallbacks
+) -> std::optional<VkSurfaceKHR> {
     std::optional<VkSurfaceKHR> surfaceOptional { std::nullopt };
 
     VkWin32SurfaceCreateInfoKHR surfaceCreateInfo {
@@ -205,9 +208,9 @@ auto Platform::createVulkanSurface(const renderer::vulkan::Context& vulkanContex
 
     const VkResult result {
         vkCreateWin32SurfaceKHR(
-            vulkanContext.instance,
+            instance,
             &surfaceCreateInfo,
-            vulkanContext.allocationCallbacks,
+            allocationCallbacks,
             &m_state.surface
         )
     };

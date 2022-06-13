@@ -80,6 +80,7 @@ auto operator<< (std::ostream& outputStream, const Logger::Level level) -> std::
     case Logger::Level::Warn: return outputStream << "[WARN]";
     case Logger::Level::Error: return outputStream << "[ERROR]";
     case Logger::Level::Fatal: return outputStream << "[FATAL]";
+    default: return outputStream << "[UNKNOWN]";
     }
 }
 

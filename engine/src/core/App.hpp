@@ -24,11 +24,11 @@ private:
     std::vector<Input::MouseEvent::Subscription> m_mouseEventSubscriptions;
     bool m_isRunning;
     bool m_isSuspended;
-    Clock m_clock;
     float m_lastTime;
-    Input m_input;
-    platform::Platform m_platform;
-    renderer::RendererFrontend m_rendererFrontend;
+    std::shared_ptr<Input> m_input;
+    std::shared_ptr<platform::Platform> m_platform;
+    std::unique_ptr<Clock> m_clock;
+    std::unique_ptr<renderer::RendererFrontend> m_rendererFrontend;
     std::unique_ptr<IGame> m_game;
 };
 

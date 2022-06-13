@@ -4,8 +4,11 @@
 namespace beige {
 namespace renderer {
 
-RendererFrontend::RendererFrontend(const std::string& appName, platform::Platform& platform) :
-    m_rendererBackend { std::make_unique<vulkan::VulkanBackend>(appName, platform) } {
+RendererFrontend::RendererFrontend(
+    const std::string& appName,
+    std::shared_ptr<platform::Platform> platform
+) :
+m_rendererBackend { std::make_unique<vulkan::VulkanBackend>(appName, platform) } {
 
 }
 

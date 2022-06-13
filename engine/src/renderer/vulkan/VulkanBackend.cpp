@@ -7,10 +7,13 @@ namespace beige {
 namespace renderer {
 namespace vulkan {
 
-VulkanBackend::VulkanBackend(const std::string& appName, platform::Platform& platform) :
+VulkanBackend::VulkanBackend(
+    const std::string& appName,
+    std::shared_ptr<platform::Platform> platform
+) :
 IRendererBackend { appName, platform } {
     // TODO: Custom allocator
-    m_context.allocationCallbacks = nullptr;
+    m_allocationCallbacks = nullptr;
 
     VkApplicationInfo applicationInfo {
         VK_STRUCTURE_TYPE_APPLICATION_INFO, // sType
@@ -68,7 +71,7 @@ IRendererBackend { appName, platform } {
     instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(requiredValidationLayerNames.size());
     instanceCreateInfo.ppEnabledLayerNames = requiredValidationLayerNames.data();
 
-    std::vector<const char*> requiredExtensions { m_platform.getVulkanRequiredExtensionNames() };
+    std::vector<const char*> requiredExtensions { m_platform->getVulkanRequiredExtensionNames() };
     requiredExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
 #ifdef BEIGE_DEBUG
@@ -83,7 +86,7 @@ IRendererBackend { appName, platform } {
     instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
     instanceCreateInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
-    VULKAN_CHECK(vkCreateInstance(&instanceCreateInfo, m_context.allocationCallbacks, &m_context.instance));
+    VULKAN_CHECK(vkCreateInstance(&instanceCreateInfo, m_allocationCallbacks, &m_instance));
     core::Logger::info("Vulkan instance created!");
 
 #ifdef BEIGE_DEBUG
@@ -134,7 +137,7 @@ IRendererBackend { appName, platform } {
     };
 
     PFN_vkCreateDebugUtilsMessengerEXT createDebugUtilsMessengerCallback {
-        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_context.instance, "vkCreateDebugUtilsMessengerEXT")
+        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT")
     };
 
     ASSERT_MESSAGE(
@@ -144,10 +147,10 @@ IRendererBackend { appName, platform } {
 
     VULKAN_CHECK(
         createDebugUtilsMessengerCallback(
-            m_context.instance,
+            m_instance,
             &debugUtilsMessengerCreateInfo,
-            m_context.allocationCallbacks,
-            &m_context.debugUtilsMessenger
+            m_allocationCallbacks,
+            &m_debugUtilsMessenger
         )
     );
 
@@ -157,20 +160,47 @@ IRendererBackend { appName, platform } {
     core::Logger::info("Creating Vulkan surface...");
 
     std::optional<VkSurfaceKHR> surface {
-        m_platform.createVulkanSurface(m_context)
+        m_platform->createVulkanSurface(m_instance, m_allocationCallbacks)
     };
 
     if (surface.has_value()) {
-        m_context.surface = surface.value();
+        m_surface = surface.value();
     } else {
         throw std::exception("Failed to create platform surface!");
     }
 
     core::Logger::info("Vulkan surface created!");
+
+    m_device = std::make_unique<VulkanDevice>(
+        m_allocationCallbacks,
+        m_instance,
+        m_surface
+    );
+
+    core::Logger::info("Vulkan renderer initialized successfully!");
 }
 
 VulkanBackend::~VulkanBackend() {
+    m_device.reset();
+#ifdef BEIGE_DEBUG
+    core::Logger::debug("Vulkan destroying debugger...");
+    if (m_debugUtilsMessenger != 0) {
+        PFN_vkDestroyDebugUtilsMessengerEXT destroyDebugUtilsMessengerCallback {
+            (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT")
+        };
+        destroyDebugUtilsMessengerCallback(
+            m_instance,
+            m_debugUtilsMessenger,
+            m_allocationCallbacks
+        );
+    }
+#endif // BEIGE_DEBUG
 
+    core::Logger::info("Vulkan destroying surface...");
+    vkDestroySurfaceKHR(m_instance, m_surface, m_allocationCallbacks);
+
+    core::Logger::info("Vulkan destroying instance...");
+    vkDestroyInstance(m_instance, m_allocationCallbacks);
 }
 
 auto VulkanBackend::onResized(const uint16_t width, const uint16_t height) -> void {

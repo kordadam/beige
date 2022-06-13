@@ -17,7 +17,6 @@
 // For surface creation
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_win32.h>
-#include "../renderer/vulkan/VulkanTypes.hpp"
 
 namespace beige {
 namespace platform {
@@ -35,7 +34,7 @@ class Platform final {
 public:
     Platform(
         const core::AppConfig& appConfig,
-        core::Input& input
+        std::shared_ptr<core::Input> input
     );
     ~Platform();
 
@@ -43,7 +42,10 @@ public:
 
     auto pumpMessages() -> bool;
     auto getVulkanRequiredExtensionNames() -> std::vector<const char*>;
-    auto createVulkanSurface(const renderer::vulkan::Context& vulkanContext) -> std::optional<VkSurfaceKHR>;
+    auto createVulkanSurface(
+        const VkInstance& instance,
+        const VkAllocationCallbacks* allocationCallbacks
+    ) -> std::optional<VkSurfaceKHR>;
 
 #ifdef BEIGE_PLATFORM_WIN32
     auto processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam) -> LRESULT;
@@ -51,7 +53,7 @@ public:
 
 private:
     State m_state;
-    core::Input& m_input;
+    std::shared_ptr<core::Input> m_input;
 };
 
 } // namespace platform

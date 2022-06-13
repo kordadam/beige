@@ -9,8 +9,13 @@ namespace renderer {
 
 class IRendererBackend {
 public:
-    IRendererBackend(const std::string& appName, platform::Platform& platform) :
-        m_platform { platform } { };
+    IRendererBackend(
+        const std::string& appName,
+        std::shared_ptr<platform::Platform> platform
+    ) :
+    m_platform { platform } {
+
+    };
     virtual ~IRendererBackend() = default;
 
     virtual auto onResized(const uint16_t width, const uint16_t height) -> void = 0;
@@ -19,7 +24,7 @@ public:
     virtual auto drawFrame(const Packet& packet) -> bool = 0;
 
 protected:
-    platform::Platform& m_platform;
+    std::shared_ptr<platform::Platform> m_platform;
 };
 
 } // namespace renderer

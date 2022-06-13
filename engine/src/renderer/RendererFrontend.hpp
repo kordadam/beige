@@ -11,7 +11,10 @@ namespace renderer {
 
 class RendererFrontend final {
 public:
-    RendererFrontend(const std::string& appName, platform::Platform& platform);
+    RendererFrontend(
+        const std::string& appName,
+        std::shared_ptr<platform::Platform> platform
+    );
     ~RendererFrontend();
 
     auto onResized(const uint16_t width, const uint16_t height) -> void;

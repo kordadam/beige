@@ -10,14 +10,14 @@ namespace core {
 App::App(std::unique_ptr<IGame> game) :
 m_isRunning { true },
 m_isSuspended { false },
-m_clock { },
 m_lastTime { 0.0f },
-m_input { },
-m_platform { game->getAppConfig(), m_input },
-m_rendererFrontend { game->getAppConfig().name, m_platform },
+m_input { std::make_shared<Input>() },
+m_platform { std::make_shared<platform::Platform>(game->getAppConfig(), m_input) },
+m_clock { std::make_unique<Clock>() },
+m_rendererFrontend { std::make_unique<renderer::RendererFrontend>(game->getAppConfig().name, m_platform) },
 m_game { std::move(game) } {
     m_keyEventSubscriptions.push_back(
-        m_input.KeyEvent::subscribe(
+        m_input->KeyEvent::subscribe(
             [&](const KeyEventCode& keyEventCode, const Key& key) -> void {
                 switch (keyEventCode) {
                 case KeyEventCode::Pressed: {
@@ -39,7 +39,7 @@ m_game { std::move(game) } {
     );
 
     m_mouseEventSubscriptions.push_back(
-        m_input.MouseEvent::subscribe(
+        m_input->MouseEvent::subscribe(
             [](const MouseEventCode& mouseEventCode, const MouseState& mouseState) -> void {
                 switch (mouseEventCode) {
                 case MouseEventCode::Pressed: {
@@ -67,7 +67,7 @@ App::~App() {
         m_keyEventSubscriptions.begin(),
         m_keyEventSubscriptions.end(),
         [&](const Input::KeyEvent::Subscription& subscription) -> void {
-            m_input.KeyEvent::unsubscribe(subscription);
+            m_input->KeyEvent::unsubscribe(subscription);
         }
     );
 
@@ -75,23 +75,23 @@ App::~App() {
         m_mouseEventSubscriptions.begin(),
         m_mouseEventSubscriptions.end(),
         [&](const Input::MouseEvent::Subscription& subscription) -> void {
-            m_input.MouseEvent::unsubscribe(subscription);
+            m_input->MouseEvent::unsubscribe(subscription);
         }
     );
 }
 
 auto App::run() -> bool {
-    m_clock.update();
-    m_lastTime = m_clock.getElapsedTime();
+    m_clock->update();
+    m_lastTime = m_clock->getElapsedTime();
 
     while (m_isRunning) {
-        if (!m_platform.pumpMessages()) {
+        if (!m_platform->pumpMessages()) {
             m_isRunning = false;
         }
 
         if (!m_isSuspended) {
-            m_clock.update();
-            const float currentTime { m_clock.getElapsedTime() };
+            m_clock->update();
+            const float currentTime { m_clock->getElapsedTime() };
             const float deltaTime { currentTime - m_lastTime };
 
             if (!m_game->update(deltaTime)) {
@@ -104,7 +104,7 @@ auto App::run() -> bool {
                 break;
             }
 
-            m_input.update(deltaTime);
+            m_input->update(deltaTime);
 
             m_lastTime = currentTime;
         }
