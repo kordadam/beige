@@ -11,7 +11,19 @@ VulkanBackend::VulkanBackend(
     const std::string& appName,
     std::shared_ptr<platform::Platform> platform
 ) :
-IRendererBackend { appName, platform } {
+IRendererBackend { appName, platform },
+m_framebufferWidth { 0u },
+m_framebufferHeight { 0u },
+m_allocationCallbacks { nullptr },
+m_instance { 0 },
+m_surface { 0 },
+
+#if defined(BEIGE_DEBUG)
+m_debugUtilsMessenger { 0 },
+#endif // BEIGE_DEBUG
+
+m_device { nullptr },
+m_swapchain { nullptr } {
     // TODO: Custom allocator
     m_allocationCallbacks = nullptr;
 
@@ -171,17 +183,30 @@ IRendererBackend { appName, platform } {
 
     core::Logger::info("Vulkan surface created!");
 
-    m_device = std::make_unique<VulkanDevice>(
+    m_device = std::make_shared<VulkanDevice>(
         m_allocationCallbacks,
         m_instance,
         m_surface
+    );
+
+    m_swapchain = std::make_shared<VulkanSwapchain>(
+        100u,
+        100u,
+        m_surface,
+        m_allocationCallbacks,
+        m_device
     );
 
     core::Logger::info("Vulkan renderer initialized successfully!");
 }
 
 VulkanBackend::~VulkanBackend() {
+    m_swapchain.reset();
     m_device.reset();
+
+    core::Logger::info("Vulkan destroying surface...");
+    vkDestroySurfaceKHR(m_instance, m_surface, m_allocationCallbacks);
+
 #ifdef BEIGE_DEBUG
     core::Logger::debug("Vulkan destroying debugger...");
     if (m_debugUtilsMessenger != 0) {
@@ -195,9 +220,6 @@ VulkanBackend::~VulkanBackend() {
         );
     }
 #endif // BEIGE_DEBUG
-
-    core::Logger::info("Vulkan destroying surface...");
-    vkDestroySurfaceKHR(m_instance, m_surface, m_allocationCallbacks);
 
     core::Logger::info("Vulkan destroying instance...");
     vkDestroyInstance(m_instance, m_allocationCallbacks);

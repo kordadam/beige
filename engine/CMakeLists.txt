@@ -23,6 +23,10 @@ set(SRC
     src/renderer/vulkan/VulkanDefines.hpp
     src/renderer/vulkan/VulkanDevice.cpp
     src/renderer/vulkan/VulkanDevice.hpp
+    src/renderer/vulkan/VulkanImage.cpp
+    src/renderer/vulkan/VulkanImage.hpp
+    src/renderer/vulkan/VulkanSwapchain.cpp
+    src/renderer/vulkan/VulkanSwapchain.hpp
     src/renderer/IRendererBackend.hpp
     src/renderer/RendererFrontend.cpp
     src/renderer/RendererFrontend.hpp

@@ -3,6 +3,7 @@
 #include "../IRendererBackend.hpp"
 
 #include "VulkanDevice.hpp"
+#include "VulkanSwapchain.hpp"
 
 namespace beige {
 namespace renderer {
@@ -22,15 +23,18 @@ public:
     auto drawFrame(const Packet& packet) -> bool override;
 
 private:
+    uint32_t m_framebufferWidth;
+    uint32_t m_framebufferHeight;
     VkAllocationCallbacks* m_allocationCallbacks;
     VkInstance m_instance;
     VkSurfaceKHR m_surface;
 
 #if defined(BEIGE_DEBUG)
     VkDebugUtilsMessengerEXT m_debugUtilsMessenger;
-#endif
+#endif // BEIGE_DEBUG
 
-    std::unique_ptr<VulkanDevice> m_device;
+    std::shared_ptr<VulkanDevice> m_device;
+    std::shared_ptr<VulkanSwapchain> m_swapchain;
 };
 
 } // namespace vulkan

@@ -12,6 +12,12 @@ namespace vulkan {
 
 class VulkanDevice final {
 public:
+    struct SwapchainSupport {
+        VkSurfaceCapabilitiesKHR surfaceCapabilities;
+        std::vector<VkSurfaceFormatKHR> surfaceFormats;
+        std::vector<VkPresentModeKHR> presentModes;
+    };
+
     VulkanDevice(
         VkAllocationCallbacks* allocationCallbacks,
         const VkInstance& instance,
@@ -19,13 +25,20 @@ public:
     );
     ~VulkanDevice();
 
-private:
-    struct SwapchainSupport {
-        VkSurfaceCapabilitiesKHR surfaceCapabilities;
-        std::vector<VkSurfaceFormatKHR> surfaceFormats;
-        std::vector<VkPresentModeKHR> presentModes;
-    };
+    auto getLogicalDevice() const -> const VkDevice&;
+    auto getPhysicalDevice() const -> const VkPhysicalDevice&;
+    auto getSwapchainSupport() const -> const SwapchainSupport&;
+    auto getGraphicsQueueIndex() const -> const std::optional<uint32_t>&;
+    auto getPresentQueueIndex() const -> const std::optional<uint32_t>&;
+    auto getDepthFormat() const -> const VkFormat&;
 
+    auto querySwapchainSupport(
+        const VkPhysicalDevice& physicalDevice
+    ) -> void;
+
+    auto detectDepthFormat() -> void;
+
+private:
     struct PhysicalDeviceRequirements {
         bool graphics;
         bool present;
@@ -44,6 +57,8 @@ private:
     };
 
     VkAllocationCallbacks* m_allocationCallbacks;
+    VkSurfaceKHR m_surface;
+
     VkPhysicalDevice m_physicalDevice;
     VkDevice m_logicalDevice;
     SwapchainSupport m_swapchainSupport;
@@ -51,33 +66,28 @@ private:
     std::optional<uint32_t> m_presentQueueIndex;
     std::optional<uint32_t> m_computeQueueIndex;
     std::optional<uint32_t> m_transferQueueIndex;
+
     VkQueue m_graphicsQueue;
     VkQueue m_presentQueue;
     VkQueue m_transferQueue;
+
     VkPhysicalDeviceProperties m_physicalDeviceProperties;
     VkPhysicalDeviceFeatures m_physicalDeviceFeatures;
     VkPhysicalDeviceMemoryProperties m_physicalDeviceMemoryProperties;
 
+    VkFormat m_depthFormat;
+
     auto selectPhysicalDevice(
-        const VkInstance& instance,
-        const VkSurfaceKHR& surface
+        const VkInstance& instance
     ) -> bool;
 
     auto physicalDeviceMeetsRequirements(
         const VkPhysicalDevice& physicalDevice,
-        const VkSurfaceKHR& surface,
         const VkPhysicalDeviceProperties& physicalDeviceProperties,
         const VkPhysicalDeviceFeatures& physicalDeviceFeatures,
         const PhysicalDeviceRequirements& physicalDeviceRequirements,
-        PhysicalDeviceQueueFamilies& physicalDeviceQueueFamilies,
-        SwapchainSupport& swapchainSupport
+        PhysicalDeviceQueueFamilies& physicalDeviceQueueFamilies
     ) -> bool;
-
-    auto deviceQuerySwapchainSupport(
-        const VkPhysicalDevice& physicalDevice,
-        const VkSurfaceKHR& surface,
-        SwapchainSupport& swapchainSupport
-    ) -> void;
 };
 
 } // namespace vulkan
