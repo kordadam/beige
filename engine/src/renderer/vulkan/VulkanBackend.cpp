@@ -3,6 +3,8 @@
 #include "../../core/Logger.hpp"
 #include "VulkanDefines.hpp"
 
+#include <algorithm>
+
 namespace beige {
 namespace renderer {
 namespace vulkan {
@@ -24,7 +26,8 @@ m_debugUtilsMessenger { 0 },
 
 m_device { nullptr },
 m_swapchain { nullptr },
-m_mainRenderPass { nullptr } {
+m_mainRenderPass { nullptr },
+m_graphicsCommandBuffers { } {
     // TODO: Custom allocator
     m_allocationCallbacks = nullptr;
 
@@ -214,10 +217,24 @@ m_mainRenderPass { nullptr } {
         0u                                       // stencil
     );
 
+    createCommandBuffers();
+
     core::Logger::info("Vulkan renderer initialized successfully!");
 }
 
 VulkanBackend::~VulkanBackend() {
+    const VkCommandPool graphicsCommandPool { m_device->getGraphicsCommandPool() };
+
+    core::Logger::info("Destroying graphics command buffers...");
+    std::for_each(
+        m_graphicsCommandBuffers.begin(),
+        m_graphicsCommandBuffers.end(),
+        [&](const std::shared_ptr<CommandBuffer> graphicsCommandBuffer) -> void {
+            graphicsCommandBuffer->free(graphicsCommandPool);
+        }
+    );
+    m_graphicsCommandBuffers.clear();
+
     core::Logger::info("Destroying Vulkan render pass...");
     m_mainRenderPass.reset();
 
@@ -262,6 +279,27 @@ auto VulkanBackend::endFrame(const float deltaTime) -> bool {
 
 auto VulkanBackend::drawFrame(const Packet& packet) -> bool {
     return true;
+}
+
+auto VulkanBackend::createCommandBuffers() -> void {
+    const VkCommandPool graphicsCommandPool { m_device->getGraphicsCommandPool() };
+
+    if (m_graphicsCommandBuffers.empty()) {
+        m_graphicsCommandBuffers.resize(
+            m_swapchain->getImageCount(),
+            std::make_shared<CommandBuffer>(m_device)
+        );
+    }
+
+    for (const std::shared_ptr<CommandBuffer> graphicsCommandBuffer : m_graphicsCommandBuffers) {
+        if (graphicsCommandBuffer->getCommandBuffer() != 0) {
+            graphicsCommandBuffer->free(graphicsCommandPool);
+        }
+
+        graphicsCommandBuffer->allocate(graphicsCommandPool, true);
+    }
+
+    core::Logger::info("Vulkan graphics command buffers created!");
 }
 
 } // namespace vulkan

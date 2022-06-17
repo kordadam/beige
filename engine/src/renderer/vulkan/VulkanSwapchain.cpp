@@ -42,6 +42,10 @@ auto VulkanSwapchain::getSurfaceFormat() const -> const VkSurfaceFormatKHR& {
     return m_surfaceFormat;
 }
 
+auto VulkanSwapchain::getImageCount() const -> uint32_t {
+    return static_cast<uint32_t>(m_images.size());
+}
+
 auto VulkanSwapchain::recreate() -> void {
     destroy();
     create();

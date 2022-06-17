@@ -20,6 +20,8 @@ set(SRC
     src/platform/PlatformWin32.cpp
     src/renderer/vulkan/VulkanBackend.cpp
     src/renderer/vulkan/VulkanBackend.hpp
+    src/renderer/vulkan/VulkanCommandBuffer.cpp
+    src/renderer/vulkan/VulkanCommandBuffer.hpp
     src/renderer/vulkan/VulkanDefines.hpp
     src/renderer/vulkan/VulkanDevice.cpp
     src/renderer/vulkan/VulkanDevice.hpp

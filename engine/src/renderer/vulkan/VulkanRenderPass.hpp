@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VulkanSwapchain.hpp"
+#include "VulkanCommandBuffer.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -17,21 +18,6 @@ public:
         RecordingEnded,
         Submitted,
         NotAllocated
-    };
-
-    // TODO: It should be separate class?
-    struct CommandBuffer {
-        enum class State : uint32_t {
-            Ready,
-            Recording,
-            InRenderPass,
-            RecordingEnded,
-            Submitted,
-            NotAllocated
-        };
-
-        VkCommandBuffer commandBuffer;
-        State state;
     };
 
     RenderPass(

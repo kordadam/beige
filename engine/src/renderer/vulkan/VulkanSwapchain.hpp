@@ -26,6 +26,7 @@ public:
     ~VulkanSwapchain();
 
     auto getSurfaceFormat() const -> const VkSurfaceFormatKHR&;
+    auto getImageCount() const -> uint32_t;
 
     auto recreate() -> void;
 

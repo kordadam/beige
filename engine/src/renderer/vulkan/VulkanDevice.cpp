@@ -28,6 +28,7 @@ m_transferQueueIndex { std::nullopt },
 m_graphicsQueue { 0 },
 m_presentQueue { 0 },
 m_transferQueue { 0 },
+m_graphicsCommandPool { 0 },
 m_physicalDeviceProperties { 0 },
 m_physicalDeviceFeatures { 0 },
 m_physicalDeviceMemoryProperties { 0 },
@@ -131,9 +132,35 @@ m_depthFormat { } {
     );
 
     core::Logger::info("Queues obtained!");
+
+    // Create command pool for graphics queue
+    const VkCommandPoolCreateInfo commandPoolCreateInfo {
+        VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, // sType
+        nullptr, // pNext
+        VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // flags
+        m_graphicsQueueIndex.value() // queueFamilyIndex
+    };
+
+    VULKAN_CHECK(
+        vkCreateCommandPool(
+            m_logicalDevice,
+            &commandPoolCreateInfo,
+            m_allocationCallbacks,
+            &m_graphicsCommandPool
+        )
+    );
+
+    core::Logger::info("Graphics command pool created!");
 }
 
 VulkanDevice::~VulkanDevice() {
+    core::Logger::info("Destroying command pools...");
+    vkDestroyCommandPool(
+        m_logicalDevice,
+        m_graphicsCommandPool,
+        m_allocationCallbacks
+    );
+
     core::Logger::info("Destroying logical device...");
 
     vkDestroyDevice(
@@ -163,6 +190,10 @@ auto VulkanDevice::getPresentQueueIndex() const -> const std::optional<uint32_t>
 
 auto VulkanDevice::getDepthFormat() const -> const VkFormat& {
     return m_depthFormat;
+}
+
+auto VulkanDevice::getGraphicsCommandPool() const -> const VkCommandPool& {
+    return m_graphicsCommandPool;
 }
 
 auto VulkanDevice::querySwapchainSupport(

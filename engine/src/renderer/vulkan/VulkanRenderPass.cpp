@@ -38,10 +38,7 @@ m_a { a },
 m_depth { depth },
 m_stencil { stencil },
 m_state { State::Ready },
-m_commandBuffer {
-    0,                          // commandBuffer
-    CommandBuffer::State::Ready // state
-},
+m_commandBuffer { device },
 m_framebuffer { 0 } {
     const VkSurfaceFormatKHR surfaceFormat { m_swapchain->getSurfaceFormat() };
     const VkFormat depthFormat { m_device->getDepthFormat() };
@@ -168,27 +165,27 @@ auto RenderPass::begin() -> void {
     clearValues.at(1).depthStencil.stencil = m_stencil;
 
     const VkRenderPassBeginInfo renderPassBeginInfo {
-        VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO, // sType
-        nullptr, //  pNext
-        m_renderPass, // renderPass
-        m_framebuffer, // framebuffer
-        renderArea, // renderArea
+        VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,  // sType
+        nullptr,                                   // pNext
+        m_renderPass,                              // renderPass
+        m_framebuffer,                             // framebuffer
+        renderArea,                                // renderArea
         static_cast<uint32_t>(clearValues.size()), // clearValueCount
-        clearValues.data() // pClearValues
+        clearValues.data()                         // pClearValues
     };
 
     vkCmdBeginRenderPass(
-        m_commandBuffer.commandBuffer,
+        m_commandBuffer.getCommandBuffer(),
         &renderPassBeginInfo,
         VK_SUBPASS_CONTENTS_INLINE
     );
 
-    m_commandBuffer.state = CommandBuffer::State::InRenderPass;
+    m_commandBuffer.setState(CommandBuffer::State::InRenderPass);
 }
 
 auto RenderPass::end() -> void {
-    vkCmdEndRenderPass(m_commandBuffer.commandBuffer);
-    m_commandBuffer.state = CommandBuffer::State::Recording;
+    vkCmdEndRenderPass(m_commandBuffer.getCommandBuffer());
+    m_commandBuffer.setState(CommandBuffer::State::Recording);
 }
 
 } // namespace vulkan

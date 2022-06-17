@@ -16,6 +16,7 @@ public:
         const std::string& appName,
         std::shared_ptr<platform::Platform> platform
     );
+
     ~VulkanBackend();
 
     auto onResized(const uint16_t width, const uint16_t height) -> void override;
@@ -37,6 +38,9 @@ private:
     std::shared_ptr<VulkanDevice> m_device;
     std::shared_ptr<VulkanSwapchain> m_swapchain;
     std::shared_ptr<RenderPass> m_mainRenderPass;
+    std::vector<std::shared_ptr<CommandBuffer>> m_graphicsCommandBuffers;
+
+    auto createCommandBuffers() -> void;
 };
 
 } // namespace vulkan

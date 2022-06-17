@@ -23,6 +23,7 @@ public:
         const VkInstance& instance,
         const VkSurfaceKHR& surface
     );
+
     ~VulkanDevice();
 
     auto getLogicalDevice() const -> const VkDevice&;
@@ -31,6 +32,7 @@ public:
     auto getGraphicsQueueIndex() const -> const std::optional<uint32_t>&;
     auto getPresentQueueIndex() const -> const std::optional<uint32_t>&;
     auto getDepthFormat() const -> const VkFormat&;
+    auto getGraphicsCommandPool() const -> const VkCommandPool&;
 
     auto querySwapchainSupport(
         const VkPhysicalDevice& physicalDevice
@@ -70,6 +72,8 @@ private:
     VkQueue m_graphicsQueue;
     VkQueue m_presentQueue;
     VkQueue m_transferQueue;
+
+    VkCommandPool m_graphicsCommandPool;
 
     VkPhysicalDeviceProperties m_physicalDeviceProperties;
     VkPhysicalDeviceFeatures m_physicalDeviceFeatures;
