@@ -4,6 +4,7 @@
 
 #include "VulkanDevice.hpp"
 #include "VulkanSwapchain.hpp"
+#include "VulkanRenderPass.hpp"
 
 namespace beige {
 namespace renderer {
@@ -35,6 +36,7 @@ private:
 
     std::shared_ptr<VulkanDevice> m_device;
     std::shared_ptr<VulkanSwapchain> m_swapchain;
+    std::shared_ptr<RenderPass> m_mainRenderPass;
 };
 
 } // namespace vulkan

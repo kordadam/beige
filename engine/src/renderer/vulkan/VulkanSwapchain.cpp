@@ -38,6 +38,10 @@ VulkanSwapchain::~VulkanSwapchain() {
     destroy();
 }
 
+auto VulkanSwapchain::getSurfaceFormat() const -> const VkSurfaceFormatKHR& {
+    return m_surfaceFormat;
+}
+
 auto VulkanSwapchain::recreate() -> void {
     destroy();
     create();

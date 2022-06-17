@@ -319,7 +319,7 @@ auto VulkanDevice::selectPhysicalDevice(
             case VK_PHYSICAL_DEVICE_TYPE_CPU:
                 core::Logger::info("GPU type is CPU!");
                 break;
-            case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+            case VK_PHYSICAL_DEVICE_TYPE_OTHER: [[fallthrough]];
             default:
                 core::Logger::info("GPU type is uknown!");
                 break;

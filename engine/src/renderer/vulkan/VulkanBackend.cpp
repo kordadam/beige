@@ -23,7 +23,8 @@ m_debugUtilsMessenger { 0 },
 #endif // BEIGE_DEBUG
 
 m_device { nullptr },
-m_swapchain { nullptr } {
+m_swapchain { nullptr },
+m_mainRenderPass { nullptr } {
     // TODO: Custom allocator
     m_allocationCallbacks = nullptr;
 
@@ -62,7 +63,7 @@ m_swapchain { nullptr } {
     for (const char* requiredValidationLayerName : requiredValidationLayerNames) {
         core::Logger::info("Searching for layer: " + std::string(requiredValidationLayerName) + "...");
         bool found { false };
-        
+
         for (const VkLayerProperties& layerProperty : layerProperties) {
             if (std::string(requiredValidationLayerName) == std::string(layerProperty.layerName)) {
                 found = true;
@@ -137,7 +138,7 @@ m_swapchain { nullptr } {
             case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
                 core::Logger::warn(pCallbackData->pMessage);
                 break;
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: [[fallthrough]];
             default:
                 core::Logger::error(pCallbackData->pMessage);
                 break;
@@ -197,18 +198,40 @@ m_swapchain { nullptr } {
         m_device
     );
 
+    m_mainRenderPass = std::make_shared<RenderPass>(
+        m_allocationCallbacks,                   // allocationCallbacks
+        m_swapchain,                             // swapchain
+        m_device,                                // device
+        0.0f,                                    // x
+        0.0f,                                    // y
+        static_cast<float>(m_framebufferWidth),  // w
+        static_cast<float>(m_framebufferHeight), // h
+        0.0f,                                    // r
+        0.0f,                                    // g
+        0.2f,                                    // b
+        1.0f,                                    // a
+        1.0f,                                    // depth
+        0u                                       // stencil
+    );
+
     core::Logger::info("Vulkan renderer initialized successfully!");
 }
 
 VulkanBackend::~VulkanBackend() {
+    core::Logger::info("Destroying Vulkan render pass...");
+    m_mainRenderPass.reset();
+
+    core::Logger::info("Destroying Vulkan swapchain...");
     m_swapchain.reset();
+
+    core::Logger::info("Destroying Vulkan device...");
     m_device.reset();
 
-    core::Logger::info("Vulkan destroying surface...");
+    core::Logger::info("Destroying Vulkan surface...");
     vkDestroySurfaceKHR(m_instance, m_surface, m_allocationCallbacks);
 
 #ifdef BEIGE_DEBUG
-    core::Logger::debug("Vulkan destroying debugger...");
+    core::Logger::debug("Destroying Vulkan debugger...");
     if (m_debugUtilsMessenger != 0) {
         PFN_vkDestroyDebugUtilsMessengerEXT destroyDebugUtilsMessengerCallback {
             (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT")
@@ -221,7 +244,7 @@ VulkanBackend::~VulkanBackend() {
     }
 #endif // BEIGE_DEBUG
 
-    core::Logger::info("Vulkan destroying instance...");
+    core::Logger::info("Destroying Vulkan instance...");
     vkDestroyInstance(m_instance, m_allocationCallbacks);
 }
 

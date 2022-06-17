@@ -136,19 +136,19 @@ auto Platform::processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM
     case WM_SYSKEYDOWN: [[fallthrough]];
     case WM_KEYUP: [[fallthrough]];
     case WM_SYSKEYUP: {
-        const core::Key key{ static_cast<core::Key>(wParam) };
-        const bool isPressed{ message == WM_KEYDOWN || message == WM_SYSKEYDOWN };
+        const core::Key key { static_cast<core::Key>(wParam) };
+        const bool isPressed { message == WM_KEYDOWN || message == WM_SYSKEYDOWN };
         m_input->processKey(key, isPressed);
         break;
     }
     case WM_MOUSEMOVE: {
-        const int32_t xPosition{ static_cast<int32_t>(GET_X_LPARAM(lParam)) };
-        const int32_t yPosition{ static_cast<int32_t>(GET_Y_LPARAM(lParam)) };
+        const int32_t xPosition { static_cast<int32_t>(GET_X_LPARAM(lParam)) };
+        const int32_t yPosition { static_cast<int32_t>(GET_Y_LPARAM(lParam)) };
         m_input->processMouseMove(xPosition, yPosition);
         break;
     }
     case WM_MOUSEWHEEL: {
-        int32_t zDelta{ static_cast<int32_t>(GET_WHEEL_DELTA_WPARAM(wParam)) };
+        int32_t zDelta { static_cast<int32_t>(GET_WHEEL_DELTA_WPARAM(wParam)) };
         if (zDelta != 0) {
             zDelta = (zDelta < 0) ? -1 : 1;
         }

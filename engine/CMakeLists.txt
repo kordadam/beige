@@ -25,6 +25,8 @@ set(SRC
     src/renderer/vulkan/VulkanDevice.hpp
     src/renderer/vulkan/VulkanImage.cpp
     src/renderer/vulkan/VulkanImage.hpp
+    src/renderer/vulkan/VulkanRenderPass.cpp
+    src/renderer/vulkan/VulkanRenderPass.hpp
     src/renderer/vulkan/VulkanSwapchain.cpp
     src/renderer/vulkan/VulkanSwapchain.hpp
     src/renderer/IRendererBackend.hpp
