@@ -132,6 +132,10 @@ Image::~Image() {
     }
 }
 
+auto Image::getImageView() const -> const VkImageView& {
+    return m_imageView;
+}
+
 auto Image::createImageView(
     const VkFormat& format,
     const VkImageAspectFlags& imageAspectFlags

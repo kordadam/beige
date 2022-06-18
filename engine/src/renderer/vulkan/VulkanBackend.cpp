@@ -4,6 +4,7 @@
 #include "VulkanDefines.hpp"
 
 #include <algorithm>
+#include <array>
 
 namespace beige {
 namespace renderer {
@@ -14,9 +15,9 @@ VulkanBackend::VulkanBackend(
     std::shared_ptr<platform::Platform> platform
 ) :
 IRendererBackend { appName, platform },
-m_framebufferWidth { 0u },
-m_framebufferHeight { 0u },
-m_allocationCallbacks { nullptr },
+m_framebufferWidth { 1280u }, // TODO: Temporary value same as in Game settings
+m_framebufferHeight { 720u }, // TODO: Temporary value same as in Game settings
+m_allocationCallbacks { nullptr }, // TODO: Custom allocator
 m_instance { 0 },
 m_surface { 0 },
 
@@ -28,31 +29,29 @@ m_device { nullptr },
 m_swapchain { nullptr },
 m_mainRenderPass { nullptr },
 m_graphicsCommandBuffers { } {
-    // TODO: Custom allocator
-    m_allocationCallbacks = nullptr;
-
-    VkApplicationInfo applicationInfo {
+    const VkApplicationInfo applicationInfo {
         VK_STRUCTURE_TYPE_APPLICATION_INFO, // sType
-        nullptr, // pNext
-        appName.c_str(), // pApplicationName
-        VK_MAKE_VERSION(1, 0, 0), // applicationVersion
-        "Beige", // pEngineName
-        VK_MAKE_VERSION(1, 0, 0), // engineVersion
-        VK_API_VERSION_1_2 // apiVersion
+        nullptr,                            // pNext
+        appName.c_str(),                    // pApplicationName
+        VK_MAKE_VERSION(1, 0, 0),           // applicationVersion
+        "Beige",                            // pEngineName
+        VK_MAKE_VERSION(1, 0, 0),           // engineVersion
+        VK_API_VERSION_1_2                  // apiVersion
     };
 
     VkInstanceCreateInfo instanceCreateInfo {
         VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, // sType
-        nullptr, // pNext
-        0u, // flags
-        &applicationInfo, // pApplicationInfo
-        0u, // enabledLayerCount
-        nullptr, // ppEnabledLayerNames
-        0u, // enabledExtensionCount
-        nullptr // ppEnabledExtensionNames
+        nullptr,                                // pNext
+        0u,                                     // flags
+        &applicationInfo,                       // pApplicationInfo
+        0u,                                     // enabledLayerCount
+        nullptr,                                // ppEnabledLayerNames
+        0u,                                     // enabledExtensionCount
+        nullptr                                 // ppEnabledExtensionNames
     };
 
     std::vector<const char*> requiredValidationLayerNames;
+
 #if defined(BEIGE_DEBUG)
     core::Logger::info("Validation layers enabled, enumerating...");
 
@@ -217,6 +216,7 @@ m_graphicsCommandBuffers { } {
         0u                                       // stencil
     );
 
+    regenerateFramebuffers();
     createCommandBuffers();
 
     core::Logger::info("Vulkan renderer initialized successfully!");
@@ -229,11 +229,16 @@ VulkanBackend::~VulkanBackend() {
     std::for_each(
         m_graphicsCommandBuffers.begin(),
         m_graphicsCommandBuffers.end(),
-        [&](const std::shared_ptr<CommandBuffer> graphicsCommandBuffer) -> void {
+        [&graphicsCommandPool](
+            const std::shared_ptr<CommandBuffer> graphicsCommandBuffer
+        ) -> void {
             graphicsCommandBuffer->free(graphicsCommandPool);
         }
     );
     m_graphicsCommandBuffers.clear();
+
+    core::Logger::info("Destroying framebuffers...");
+    m_framebuffers.clear();
 
     core::Logger::info("Destroying Vulkan render pass...");
     m_mainRenderPass.reset();
@@ -281,12 +286,40 @@ auto VulkanBackend::drawFrame(const Packet& packet) -> bool {
     return true;
 }
 
+auto VulkanBackend::regenerateFramebuffers() -> void {
+    const std::vector<VkImageView> swapchainImageViews { m_swapchain->getImageViews() };
+    const std::shared_ptr<Image> swapchainDepthAttachment { m_swapchain->getDepthAttachment() };
+
+    std::for_each(
+        swapchainImageViews.begin(),
+        swapchainImageViews.end(),
+        [&](const VkImageView& imageView) -> void {
+            // TODO: Make this dynamic based on the currently configured attachments
+            const std::vector<VkImageView> imageViews {
+                imageView,
+                swapchainDepthAttachment->getImageView()
+            };
+
+            m_framebuffers.push_back(
+                std::make_shared<Framebuffer>(
+                    m_allocationCallbacks,
+                    m_device,
+                    m_mainRenderPass,
+                    m_framebufferWidth,
+                    m_framebufferHeight,
+                    imageViews
+                )
+            );
+        }
+    );
+}
+
 auto VulkanBackend::createCommandBuffers() -> void {
     const VkCommandPool graphicsCommandPool { m_device->getGraphicsCommandPool() };
 
     if (m_graphicsCommandBuffers.empty()) {
         m_graphicsCommandBuffers.resize(
-            m_swapchain->getImageCount(),
+            m_swapchain->getImages().size(),
             std::make_shared<CommandBuffer>(m_device)
         );
     }

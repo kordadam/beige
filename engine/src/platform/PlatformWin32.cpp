@@ -118,6 +118,7 @@ auto Platform::processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM
     }
     case WM_CLOSE: {
         // TODO: Fire an event for the application to quit
+        m_input->processKey(core::Key::Escape, true);
         return 0;
     }
     case WM_DESTROY: {

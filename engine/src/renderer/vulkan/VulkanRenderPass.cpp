@@ -140,6 +140,10 @@ RenderPass::~RenderPass() {
     );
 }
 
+auto RenderPass::getRenderPass() const -> const VkRenderPass& {
+    return m_renderPass;
+}
+
 auto RenderPass::begin() -> void {
     const VkOffset2D renderAreaOffset {
         static_cast<int32_t>(m_x),

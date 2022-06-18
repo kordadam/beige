@@ -38,6 +38,8 @@ public:
 
     ~RenderPass();
 
+    auto getRenderPass() const -> const VkRenderPass&;
+
     auto begin() -> void;
     auto end() -> void;
 

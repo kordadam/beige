@@ -42,8 +42,16 @@ auto VulkanSwapchain::getSurfaceFormat() const -> const VkSurfaceFormatKHR& {
     return m_surfaceFormat;
 }
 
-auto VulkanSwapchain::getImageCount() const -> uint32_t {
-    return static_cast<uint32_t>(m_images.size());
+auto VulkanSwapchain::getImages() const -> const std::vector<VkImage>& {
+    return m_images;
+}
+
+auto VulkanSwapchain::getImageViews() const -> const std::vector<VkImageView>& {
+    return m_imageViews;
+}
+
+auto VulkanSwapchain::getDepthAttachment() const -> const std::shared_ptr<Image>& {
+    return m_depthAttachment;
 }
 
 auto VulkanSwapchain::recreate() -> void {
@@ -269,7 +277,7 @@ auto VulkanSwapchain::create() -> void {
     m_device->detectDepthFormat();
 
     // Create depth image and view
-    m_depthAttachment = std::make_unique<Image>(
+    m_depthAttachment = std::make_shared<Image>(
         m_allocationCallbacks,
         m_device,
         VK_IMAGE_TYPE_2D,

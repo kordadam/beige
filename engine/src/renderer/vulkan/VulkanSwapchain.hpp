@@ -26,7 +26,9 @@ public:
     ~VulkanSwapchain();
 
     auto getSurfaceFormat() const -> const VkSurfaceFormatKHR&;
-    auto getImageCount() const -> uint32_t;
+    auto getImages() const -> const std::vector<VkImage>&;
+    auto getImageViews() const -> const std::vector<VkImageView>&;
+    auto getDepthAttachment() const -> const std::shared_ptr<Image>&;
 
     auto recreate() -> void;
 
@@ -54,7 +56,7 @@ private:
     VkSwapchainKHR m_swapchain;
     std::vector<VkImage> m_images;
     std::vector<VkImageView> m_imageViews;
-    std::unique_ptr<Image> m_depthAttachment;
+    std::shared_ptr<Image> m_depthAttachment;
 
     uint32_t m_imageIndex;
     uint32_t m_currentFrame;

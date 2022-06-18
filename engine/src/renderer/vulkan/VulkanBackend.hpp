@@ -5,6 +5,7 @@
 #include "VulkanDevice.hpp"
 #include "VulkanSwapchain.hpp"
 #include "VulkanRenderPass.hpp"
+#include "VulkanFramebuffer.hpp"
 
 namespace beige {
 namespace renderer {
@@ -38,8 +39,10 @@ private:
     std::shared_ptr<VulkanDevice> m_device;
     std::shared_ptr<VulkanSwapchain> m_swapchain;
     std::shared_ptr<RenderPass> m_mainRenderPass;
+    std::vector<std::shared_ptr<Framebuffer>> m_framebuffers; // Framebuffers used for on-screen rendering
     std::vector<std::shared_ptr<CommandBuffer>> m_graphicsCommandBuffers;
 
+    auto regenerateFramebuffers() -> void;
     auto createCommandBuffers() -> void;
 };
 
