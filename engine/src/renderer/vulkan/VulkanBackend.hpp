@@ -6,6 +6,7 @@
 #include "VulkanSwapchain.hpp"
 #include "VulkanRenderPass.hpp"
 #include "VulkanFramebuffer.hpp"
+#include "VulkanFence.hpp"
 
 namespace beige {
 namespace renderer {
@@ -41,6 +42,11 @@ private:
     std::shared_ptr<RenderPass> m_mainRenderPass;
     std::vector<std::shared_ptr<Framebuffer>> m_framebuffers; // Framebuffers used for on-screen rendering
     std::vector<std::shared_ptr<CommandBuffer>> m_graphicsCommandBuffers;
+
+    std::vector<VkSemaphore> m_imageAvailableSemaphores;
+    std::vector<VkSemaphore> m_queueCompleteSemaphores;
+    std::vector<std::shared_ptr<Fence>> m_inFlightFences;
+    std::vector<std::shared_ptr<Fence>> m_imagesInFlight; // Holds pointers to fences which exist and are owned elsewhere
 
     auto regenerateFramebuffers() -> void;
     auto createCommandBuffers() -> void;

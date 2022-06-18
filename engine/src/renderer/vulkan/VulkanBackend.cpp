@@ -28,7 +28,11 @@ m_debugUtilsMessenger { 0 },
 m_device { nullptr },
 m_swapchain { nullptr },
 m_mainRenderPass { nullptr },
-m_graphicsCommandBuffers { } {
+m_graphicsCommandBuffers { },
+m_imageAvailableSemaphores { },
+m_queueCompleteSemaphores { },
+m_inFlightFences { },
+m_imagesInFlight { } {
     const VkApplicationInfo applicationInfo {
         VK_STRUCTURE_TYPE_APPLICATION_INFO, // sType
         nullptr,                            // pNext
@@ -118,7 +122,7 @@ m_graphicsCommandBuffers { } {
         VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
     };
 
-    VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo {
+    const VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo {
         VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT, // sType
         nullptr, // pNext
         0u, // flags
@@ -151,7 +155,7 @@ m_graphicsCommandBuffers { } {
         nullptr // pUserData
     };
 
-    PFN_vkCreateDebugUtilsMessengerEXT createDebugUtilsMessengerCallback {
+    const PFN_vkCreateDebugUtilsMessengerEXT createDebugUtilsMessengerCallback {
         (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT")
     };
 
@@ -219,11 +223,93 @@ m_graphicsCommandBuffers { } {
     regenerateFramebuffers();
     createCommandBuffers();
 
+    const VkDevice logicalDevice { m_device->getLogicalDevice() };
+
+    const VkSemaphoreCreateInfo semaphoreCreateInfo {
+        VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, // sType
+        nullptr,                                 // pNext
+        0u                                       // flags
+    };
+
+    const uint32_t maxFramesInFlight { m_swapchain->getMaxFramesInFlight() };
+
+    m_imageAvailableSemaphores.resize(maxFramesInFlight);
+    std::for_each(
+        m_imageAvailableSemaphores.begin(),
+        m_imageAvailableSemaphores.end(),
+        [&](VkSemaphore& semaphore) -> void {
+            vkCreateSemaphore(
+                logicalDevice,
+                &semaphoreCreateInfo,
+                m_allocationCallbacks,
+                &semaphore
+            );
+        }
+    );
+
+    m_queueCompleteSemaphores.resize(maxFramesInFlight);
+    std::for_each(
+        m_queueCompleteSemaphores.begin(),
+        m_queueCompleteSemaphores.end(),
+        [&](VkSemaphore& semaphore) -> void {
+            vkCreateSemaphore(
+                logicalDevice,
+                &semaphoreCreateInfo,
+                m_allocationCallbacks,
+                &semaphore
+            );
+        }
+    );
+
+    // Create fence in a signal state, idicating that the first frame has already been rendered
+    m_inFlightFences.resize(
+        maxFramesInFlight,
+        std::make_shared<Fence>(m_allocationCallbacks, m_device, true)
+    );
+
+    // TODO: m_imagesInFlight
+
     core::Logger::info("Vulkan renderer initialized successfully!");
 }
 
 VulkanBackend::~VulkanBackend() {
+    const VkDevice logicalDevice { m_device->getLogicalDevice() };
     const VkCommandPool graphicsCommandPool { m_device->getGraphicsCommandPool() };
+
+    vkDeviceWaitIdle(logicalDevice);
+
+    // TODO: m_imagesInFlight
+
+    core::Logger::info("Destroying in flight fences...");
+    m_inFlightFences.clear();
+
+    core::Logger::info("Destroying queue complete semaphores...");
+    std::for_each(
+        m_queueCompleteSemaphores.begin(),
+        m_queueCompleteSemaphores.end(),
+        [&](const VkSemaphore& semaphore) -> void {
+            vkDestroySemaphore(
+                logicalDevice,
+                semaphore,
+                m_allocationCallbacks
+            );
+        }
+    );
+    m_queueCompleteSemaphores.clear();
+
+    core::Logger::info("Destroying image available semaphores...");
+    std::for_each(
+        m_imageAvailableSemaphores.begin(),
+        m_imageAvailableSemaphores.end(),
+        [&](const VkSemaphore& semaphore) -> void {
+            vkDestroySemaphore(
+                logicalDevice,
+                semaphore,
+                m_allocationCallbacks
+            );
+        }
+    );
+    m_imageAvailableSemaphores.clear();
 
     core::Logger::info("Destroying graphics command buffers...");
     std::for_each(

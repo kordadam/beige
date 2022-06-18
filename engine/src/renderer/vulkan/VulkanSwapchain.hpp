@@ -29,6 +29,7 @@ public:
     auto getImages() const -> const std::vector<VkImage>&;
     auto getImageViews() const -> const std::vector<VkImageView>&;
     auto getDepthAttachment() const -> const std::shared_ptr<Image>&;
+    auto getMaxFramesInFlight() const -> const uint32_t;
 
     auto recreate() -> void;
 

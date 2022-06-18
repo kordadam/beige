@@ -54,6 +54,10 @@ auto VulkanSwapchain::getDepthAttachment() const -> const std::shared_ptr<Image>
     return m_depthAttachment;
 }
 
+auto VulkanSwapchain::getMaxFramesInFlight() const -> const uint32_t {
+    return m_maxFramesInFlight;
+}
+
 auto VulkanSwapchain::recreate() -> void {
     destroy();
     create();
@@ -115,6 +119,9 @@ auto VulkanSwapchain::present(
     } else if (result != VK_SUCCESS) {
         core::Logger::fatal("Failed to present swap chain image!");
     }
+
+    // Increment and loop the index
+    m_currentFrame = (m_currentFrame + 1u) % m_maxFramesInFlight;
 }
 
 auto VulkanSwapchain::create() -> void {
