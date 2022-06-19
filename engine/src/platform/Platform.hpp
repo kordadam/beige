@@ -30,8 +30,15 @@ struct State {
     VkSurfaceKHR surface;
 };
 
-class Platform final {
+enum class EventCode : uint32_t {
+    WindowResized
+};
+
+class Platform final :
+public core::Event<EventCode, uint32_t, uint32_t> {
 public:
+    using Event = core::Event<EventCode, uint32_t, uint32_t>;
+
     Platform(
         const core::AppConfig& appConfig,
         std::shared_ptr<core::Input> input
@@ -41,6 +48,7 @@ public:
     static auto consoleWrite(const std::string& message, const ConsoleColor consoleColor) -> void;
 
     auto pumpMessages() -> bool;
+    auto Sleep(const uint64_t timeInMs) -> void;
     auto getVulkanRequiredExtensionNames() -> std::vector<const char*>;
     auto createVulkanSurface(
         const VkInstance& instance,

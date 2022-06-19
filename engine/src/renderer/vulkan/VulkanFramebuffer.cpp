@@ -50,6 +50,10 @@ Framebuffer::~Framebuffer() {
     );
 }
 
+auto Framebuffer::getFramebuffer() const -> const VkFramebuffer& {
+    return m_framebuffer;
+}
+
 } // namespace vulkan
 } // namespace renderer
 } // namespace beige

@@ -17,6 +17,13 @@ auto Clock::getElapsedTime() -> float {
     return m_elapsedTime;
 }
 
+auto Clock::getAbsoluteTime() -> float {
+    return
+        std::chrono::duration_cast<std::chrono::duration<float>>(
+            std::chrono::high_resolution_clock::now().time_since_epoch()
+        ).count();
+}
+
 auto Clock::update() -> void {
     m_elapsedTime = std::chrono::duration_cast<std::chrono::duration<float>>(
         std::chrono::high_resolution_clock::now() - m_startTime

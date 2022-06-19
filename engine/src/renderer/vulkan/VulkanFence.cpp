@@ -43,6 +43,10 @@ Fence::~Fence() {
     );
 }
 
+auto Fence::getFence() const -> const VkFence& {
+    return m_fence;
+}
+
 auto Fence::wait(const uint64_t timeoutInNs) -> bool {
     if (!m_isSignaled) {
         const VkDevice logicalDevice { m_device->getLogicalDevice() };

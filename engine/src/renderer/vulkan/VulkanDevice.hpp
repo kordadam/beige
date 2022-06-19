@@ -33,6 +33,8 @@ public:
     auto getPresentQueueIndex() const -> const std::optional<uint32_t>&;
     auto getDepthFormat() const -> const VkFormat&;
     auto getGraphicsCommandPool() const -> const VkCommandPool&;
+    auto getGraphicsQueue() const -> const VkQueue&;
+    auto getPresentQueue() const -> const VkQueue&;
 
     auto querySwapchainSupport(
         const VkPhysicalDevice& physicalDevice

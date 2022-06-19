@@ -23,6 +23,8 @@ public:
 
     ~Framebuffer();
 
+    auto getFramebuffer() const -> const VkFramebuffer&;
+
 private:
     VkAllocationCallbacks* m_allocationCallbacks;
     std::shared_ptr<VulkanDevice> m_device;

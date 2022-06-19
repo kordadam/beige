@@ -2,9 +2,11 @@
 
 #include "../../core/Logger.hpp"
 #include "VulkanDefines.hpp"
+#include "VulkanUtils.hpp"
 
 #include <algorithm>
 #include <array>
+#include <limits>
 
 namespace beige {
 namespace renderer {
@@ -12,11 +14,15 @@ namespace vulkan {
 
 VulkanBackend::VulkanBackend(
     const std::string& appName,
+    const uint32_t width,
+    const uint32_t height,
     std::shared_ptr<platform::Platform> platform
 ) :
-IRendererBackend { appName, platform },
-m_framebufferWidth { 1280u }, // TODO: Temporary value same as in Game settings
-m_framebufferHeight { 720u }, // TODO: Temporary value same as in Game settings
+IRendererBackend { appName, width, height, platform },
+m_framebufferWidth { width },
+m_framebufferHeight { height },
+m_framebufferSizeGeneration { 0u },
+m_framebufferSizeLastGeneration { 0u },
 m_allocationCallbacks { nullptr }, // TODO: Custom allocator
 m_instance { 0 },
 m_surface { 0 },
@@ -27,7 +33,9 @@ m_debugUtilsMessenger { 0 },
 
 m_device { nullptr },
 m_swapchain { nullptr },
+m_recreatingSwapchain { false },
 m_mainRenderPass { nullptr },
+m_imageIndex { 0u },
 m_graphicsCommandBuffers { },
 m_imageAvailableSemaphores { },
 m_queueCompleteSemaphores { },
@@ -267,7 +275,13 @@ m_imagesInFlight { } {
         std::make_shared<Fence>(m_allocationCallbacks, m_device, true)
     );
 
-    // TODO: m_imagesInFlight
+    // In-flight images should not yet exist at this point, so clear the list
+    // These are stored in pointers because the initial state should be 0, and will be 0 when not in use
+    // Actual fences are not owned by this list
+    m_imagesInFlight.resize(
+        static_cast<uint32_t>(m_swapchain->getImages().size()),
+        nullptr
+    );
 
     core::Logger::info("Vulkan renderer initialized successfully!");
 }
@@ -278,9 +292,10 @@ VulkanBackend::~VulkanBackend() {
 
     vkDeviceWaitIdle(logicalDevice);
 
-    // TODO: m_imagesInFlight
+    core::Logger::info("Destroying images in-flight...");
+    m_imagesInFlight.clear();
 
-    core::Logger::info("Destroying in flight fences...");
+    core::Logger::info("Destroying in-flight fences...");
     m_inFlightFences.clear();
 
     core::Logger::info("Destroying queue complete semaphores...");
@@ -357,14 +372,198 @@ VulkanBackend::~VulkanBackend() {
 }
 
 auto VulkanBackend::onResized(const uint16_t width, const uint16_t height) -> void {
+    // Update the framebuffer generation, a counter which indicates when the framebuffer size has been updated
+    m_framebufferWidth = width;
+    m_framebufferHeight = height;
+    m_framebufferSizeGeneration++;
 
+    core::Logger::info(
+        "VulkanBackend::onResized - width: " + std::to_string(m_framebufferWidth) +
+        ", height: " + std::to_string(m_framebufferHeight) +
+        ", generation: " + std::to_string(m_framebufferSizeGeneration)
+    );
 }
 
 auto VulkanBackend::beginFrame(const float deltaTime) -> bool {
+    const VkDevice logicalDevice { m_device->getLogicalDevice() };
+
+    // Check if recreating swapchain and boot out
+    if (m_recreatingSwapchain) {
+        const VkResult result { vkDeviceWaitIdle(logicalDevice) };
+        if (!Utils::isResultSuccess(result)) {
+            core::Logger::error("VulkanBackend::beginFrame - vkDeviceWaitIdle failed (1): " + Utils::resultToString(result, true));
+            return false;
+        }
+
+        core::Logger::info("Recreating swapchain, booting...");
+        return false;
+    }
+
+    // Check if the framebuffer has been resized, if so, a new swapchain must be created
+    if (m_framebufferSizeGeneration != m_framebufferSizeLastGeneration) {
+        const VkResult result { vkDeviceWaitIdle(logicalDevice) };
+        if (!Utils::isResultSuccess(result)) {
+            core::Logger::error("VulkanBackend::beginFrame - vkDeviceWaitIdle failed (2): " + Utils::resultToString(result, true));
+            return false;
+        }
+
+        // If the swapchain recreation failed (because, for example, the window was minimized), boot out before unsetting the flag
+        if (!recreateSwapchain()) {
+            return false;
+        }
+
+        core::Logger::info("Resized, booting...");
+        return false;
+    }
+
+    const uint32_t currentFrame { m_swapchain->getCurrentFrame() };
+
+    // Wait for the execution of the current frame to complete
+    // The fence being free will allow this on to move on
+    if (!m_inFlightFences.at(currentFrame)->wait(UINT64_MAX)) {
+        core::Logger::warn("In-flight fence wait failure!");
+        return false;
+    }
+
+    // Acquire the next image from the swapchain
+    // Pass along the semaphore that should signaled when this completes
+    // This same semaphore will later be waited on by the queue submission to ensure this image is available
+    const std::optional<uint32_t> imageIndex {
+        m_swapchain->acquireNextImageIndex(
+            m_framebufferWidth,
+            m_framebufferHeight,
+            UINT64_MAX,
+            m_imageAvailableSemaphores.at(currentFrame),
+            0
+        )
+    };
+
+    if (!imageIndex.has_value()) {
+        return false;
+    }
+
+    m_imageIndex = imageIndex.value();
+
+    // Begin recording commands
+    std::shared_ptr<CommandBuffer> graphicsCommandBuffer { m_graphicsCommandBuffers.at(m_imageIndex) };
+    graphicsCommandBuffer->reset();
+    graphicsCommandBuffer->begin(false, false, false);
+
+    // Dynamic state
+    const VkViewport viewport {
+        0.0f,                                    // x
+        static_cast<float>(m_framebufferHeight), // y
+        static_cast<float>(m_framebufferWidth),  // width
+        static_cast<float>(m_framebufferHeight), // height
+        0.0f,                                    // minDepth
+        1.0f                                     // maxDepth
+    };
+
+    // Scissor
+    const VkOffset2D scissorOffset {
+        0, // x
+        0  // y
+    };
+
+    const VkExtent2D scissorExtent {
+        m_framebufferWidth, // width
+        m_framebufferHeight // height
+    };
+
+    const VkRect2D scissor {
+        scissorOffset, // offset
+        scissorExtent  // extent
+    };
+
+    const VkCommandBuffer commandBuffer { graphicsCommandBuffer->getCommandBuffer() };
+
+    vkCmdSetViewport(commandBuffer, 0u, 1u, &viewport);
+    vkCmdSetScissor(commandBuffer, 0u, 1u, &scissor);
+
+    m_mainRenderPass->setW(static_cast<float>(m_framebufferWidth));
+    m_mainRenderPass->setH(static_cast<float>(m_framebufferHeight));
+
+    m_mainRenderPass->begin(
+        graphicsCommandBuffer,
+        m_framebuffers.at(m_imageIndex)->getFramebuffer()
+    );
+
     return true;
 }
 
 auto VulkanBackend::endFrame(const float deltaTime) -> bool {
+    const std::shared_ptr<CommandBuffer> graphicsCommandBuffer { m_graphicsCommandBuffers.at(m_imageIndex) };
+
+    // End render pass
+    m_mainRenderPass->end(graphicsCommandBuffer);
+
+    graphicsCommandBuffer->end();
+
+    // Make sure the previous frame is not using this image
+    const std::shared_ptr<Fence> fence { m_imagesInFlight.at(m_imageIndex) };
+
+    if (fence != nullptr) {
+        fence->wait(UINT64_MAX);
+    }
+
+    // Mark the image fence as in-use by this frame
+    const uint32_t currentFrame { m_swapchain->getCurrentFrame() };
+    const std::shared_ptr<Fence> currentInFlightFence { m_inFlightFences.at(currentFrame) };
+    m_imagesInFlight.at(m_imageIndex) = currentInFlightFence;
+
+    // Reset the fence for use on the next frame
+    currentInFlightFence->reset();
+
+    // Submit the queue and wait for the operation to complete
+    // Being queue submission
+    const VkPipelineStageFlags pipelineStageFlags {
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    };
+
+    const VkSemaphore currentQueueCompleteSemaphore { m_queueCompleteSemaphores.at(currentFrame) };
+
+    const VkSubmitInfo submitInfo {
+        VK_STRUCTURE_TYPE_SUBMIT_INFO,                // sType
+        nullptr,                                      // pNext
+        1u,                                           // waitSemaphoreCount
+        &m_imageAvailableSemaphores.at(currentFrame), // pWaitSemaphores
+        &pipelineStageFlags,                          // pWaitDstStageMask
+        1u,                                           // commandBufferCount
+        &graphicsCommandBuffer->getCommandBuffer(),   // pCommandBuffers
+        1u,                                           // signalSemaphoreCount
+        &currentQueueCompleteSemaphore                // pSignalSemaphores
+    };
+
+    const VkQueue graphicsQueue { m_device->getGraphicsQueue() };
+    const VkQueue presentQueue { m_device->getPresentQueue() };
+
+    const VkResult result {
+        vkQueueSubmit(
+            graphicsQueue,
+            1u,
+            &submitInfo,
+            currentInFlightFence->getFence()
+        )
+    };
+
+    if (result != VK_SUCCESS) {
+        core::Logger::error("vkQueueSubmit failed with result " + std::to_string(static_cast<uint32_t>(result)));
+        return false;
+    }
+
+    graphicsCommandBuffer->updateSubmitted();
+    // End queue submission
+
+    // Give the image back to the swapchain
+    m_swapchain->present(
+        m_framebufferWidth,
+        m_framebufferHeight,
+        graphicsQueue,
+        presentQueue,
+        currentQueueCompleteSemaphore,
+        m_imageIndex
+    );
+
     return true;
 }
 
@@ -419,6 +618,71 @@ auto VulkanBackend::createCommandBuffers() -> void {
     }
 
     core::Logger::info("Vulkan graphics command buffers created!");
+}
+
+auto VulkanBackend::recreateSwapchain() -> bool {
+    if (m_recreatingSwapchain) {
+        core::Logger::debug("VulkanBackend::recreateSwapchain - called when already recreating, booting...");
+        return false;
+    }
+
+    if (m_framebufferWidth == 0u || m_framebufferHeight == 0u) {
+        core::Logger::debug("VulkanBackend::recreateSwapchain - called when window less than 1 in a dimension, booting...");
+        return false;
+    }
+
+    // Mark as recreating if the dimensions are valid
+    m_recreatingSwapchain = true;
+
+    // Wait for any operations to complete
+    const VkDevice logicalDevice { m_device->getLogicalDevice() };
+    vkDeviceWaitIdle(logicalDevice);
+
+    // Clear these out just in case
+    std::for_each(
+        m_imagesInFlight.begin(),
+        m_imagesInFlight.end(),
+        [](std::shared_ptr<Fence> fence) -> void {
+            fence = nullptr;
+        }
+    );
+
+    m_device->querySwapchainSupport(m_device->getPhysicalDevice());
+    m_device->detectDepthFormat();
+    m_swapchain->recreate(m_framebufferWidth, m_framebufferHeight);
+
+    // Synchronize the framebuffer size with the cached sizes
+    m_mainRenderPass->setW(static_cast<float>(m_framebufferWidth));
+    m_mainRenderPass->setH(static_cast<float>(m_framebufferHeight));
+
+    // Update framebuffer size generation
+    m_framebufferSizeLastGeneration = m_framebufferSizeGeneration;
+
+    // Clean swapchain
+    const VkCommandPool graphicsCommandPool { m_device->getGraphicsCommandPool() };
+    std::for_each(
+        m_graphicsCommandBuffers.begin(),
+        m_graphicsCommandBuffers.end(),
+        [&graphicsCommandPool](const std::shared_ptr<CommandBuffer> commandBuffer) -> void {
+            commandBuffer->free(graphicsCommandPool);
+        }
+    );
+
+    // Framebuffers
+    m_framebuffers.clear();
+
+    m_mainRenderPass->setX(0.0f);
+    m_mainRenderPass->setY(0.0f);
+    m_mainRenderPass->setW(static_cast<float>(m_framebufferWidth));
+    m_mainRenderPass->setH(static_cast<float>(m_framebufferHeight));
+
+    regenerateFramebuffers();
+    createCommandBuffers();
+
+    // Clear the recreating flag
+    m_recreatingSwapchain = false;
+
+    return true;
 }
 
 } // namespace vulkan

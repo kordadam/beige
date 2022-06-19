@@ -106,6 +106,10 @@ auto Platform::pumpMessages() -> bool {
     return true;
 }
 
+auto Platform::Sleep(const uint64_t timeInMs) -> void {
+    Sleep(timeInMs);
+}
+
 auto Platform::getVulkanRequiredExtensionNames() -> std::vector<const char*> {
     return std::vector<const char*> { "VK_KHR_win32_surface" };
 }
@@ -126,11 +130,11 @@ auto Platform::processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM
         return 0;
     }
     case WM_SIZE: {
-        // RECT rect;
-        // GetClientRect(hwnd, &rect);
-        // u32 width = rect.right - rect.left;
-        // u32 height = rect.bottom - rect.top;
-        // TODO: Fire and event for window resize
+         RECT rect { 0, 0, 0, 0 };
+         GetClientRect(hwnd, &rect);
+         const uint32_t width { static_cast<uint32_t>(rect.right - rect.left) };
+         const uint32_t height { static_cast<uint32_t>(rect.bottom - rect.top) };
+         Event::notifyListeners(EventCode::WindowResized, width, height);
         break;
     }
     case WM_KEYDOWN: [[fallthrough]];

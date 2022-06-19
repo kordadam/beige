@@ -17,8 +17,8 @@ namespace vulkan {
 class VulkanSwapchain final {
 public:
     VulkanSwapchain(
-        const uint32_t framebufferWidth,
-        const uint32_t framebufferHeight,
+        const uint32_t width,
+        const uint32_t height,
         const VkSurfaceKHR& surface,
         VkAllocationCallbacks* allocationCallbacks,
         std::shared_ptr<VulkanDevice> device
@@ -30,16 +30,21 @@ public:
     auto getImageViews() const -> const std::vector<VkImageView>&;
     auto getDepthAttachment() const -> const std::shared_ptr<Image>&;
     auto getMaxFramesInFlight() const -> const uint32_t;
+    auto getCurrentFrame() const -> const uint32_t;
 
-    auto recreate() -> void;
+    auto recreate(const uint32_t width, const uint32_t height) -> void;
 
     auto acquireNextImageIndex(
+        const uint32_t width,
+        const uint32_t height,
         const uint64_t timeoutInNs,
         const VkSemaphore& imageAvailableSemaphore,
         const VkFence& fence
     ) -> std::optional<uint32_t>;
 
     auto present(
+        const uint32_t width,
+        const uint32_t height,
         const VkQueue& graphicsQueue,
         const VkQueue& presentQueue,
         const VkSemaphore& renderCompleteSemaphore,
@@ -47,8 +52,6 @@ public:
     ) -> void;
 
 private:
-    uint32_t m_framebufferWidth;
-    uint32_t m_framebufferHeight;
     VkSurfaceKHR m_surface;
     VkAllocationCallbacks* m_allocationCallbacks;
     std::shared_ptr<VulkanDevice> m_device;
@@ -61,9 +64,8 @@ private:
 
     uint32_t m_imageIndex;
     uint32_t m_currentFrame;
-    bool m_recreatingSwapchain;
 
-    auto create() -> void;
+    auto create(const uint32_t width, const uint32_t height) -> void;
     auto destroy() -> void;
 };
 

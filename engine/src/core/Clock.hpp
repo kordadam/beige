@@ -11,6 +11,7 @@ public:
     ~Clock();
 
     auto getElapsedTime() -> float;
+    auto getAbsoluteTime() -> float;
     auto update() -> void;
 
 private:

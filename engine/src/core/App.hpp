@@ -22,9 +22,15 @@ public:
 private:
     std::vector<Input::KeyEvent::Subscription> m_keyEventSubscriptions;
     std::vector<Input::MouseEvent::Subscription> m_mouseEventSubscriptions;
+    std::vector<platform::Platform::Event::Subscription> m_platformSubscriptions;
+
     bool m_isRunning;
     bool m_isSuspended;
     float m_lastTime;
+
+    uint32_t m_windowWidth;
+    uint32_t m_windowHeight;
+
     std::shared_ptr<Input> m_input;
     std::shared_ptr<platform::Platform> m_platform;
     std::unique_ptr<Clock> m_clock;

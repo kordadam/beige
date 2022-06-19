@@ -11,14 +11,12 @@ namespace renderer {
 namespace vulkan {
 
 VulkanSwapchain::VulkanSwapchain(
-    const uint32_t framebufferWidth,
-    const uint32_t framebufferHeight,
+    const uint32_t width,
+    const uint32_t height,
     const VkSurfaceKHR& surface,
     VkAllocationCallbacks* allocationCallbacks,
     std::shared_ptr<VulkanDevice> device
 ) :
-m_framebufferWidth{ framebufferWidth },
-m_framebufferHeight { framebufferHeight },
 m_surface { surface },
 m_allocationCallbacks { allocationCallbacks },
 m_device { device },
@@ -29,9 +27,9 @@ m_images { },
 m_imageViews { },
 m_imageIndex { 0u },
 m_currentFrame { 0u },
-m_recreatingSwapchain { false },
 m_depthAttachment { nullptr } {
-    create();
+    // Simply create a new one
+    create(width, height);
 }
 
 VulkanSwapchain::~VulkanSwapchain() {
@@ -58,12 +56,18 @@ auto VulkanSwapchain::getMaxFramesInFlight() const -> const uint32_t {
     return m_maxFramesInFlight;
 }
 
-auto VulkanSwapchain::recreate() -> void {
+auto VulkanSwapchain::getCurrentFrame() const -> const uint32_t {
+    return m_currentFrame;
+}
+
+auto VulkanSwapchain::recreate(const uint32_t width, const uint32_t height) -> void {
     destroy();
-    create();
+    create(width, height);
 }
 
 auto VulkanSwapchain::acquireNextImageIndex(
+    const uint32_t width,
+    const uint32_t height,
     const uint64_t timeoutInNs,
     const VkSemaphore& imageAvailableSemaphore,
     const VkFence& fence
@@ -83,7 +87,7 @@ auto VulkanSwapchain::acquireNextImageIndex(
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         // Trigger swapchain recreation, then boot out of the render loop
-        recreate();
+        recreate(width, height);
         return std::nullopt;
     } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         core::Logger::fatal("Failed to acquire swapchain image!");
@@ -94,6 +98,8 @@ auto VulkanSwapchain::acquireNextImageIndex(
 }
 
 auto VulkanSwapchain::present(
+    const uint32_t width,
+    const uint32_t height,
     const VkQueue& graphicsQueue,
     const VkQueue& presentQueue,
     const VkSemaphore& renderCompleteSemaphore,
@@ -115,7 +121,7 @@ auto VulkanSwapchain::present(
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
         // Swapchain is out of date, suboptimal or a framebuffer resize has occured, trigger swapchain recreation
-        recreate();
+        recreate(width, height);
     } else if (result != VK_SUCCESS) {
         core::Logger::fatal("Failed to present swap chain image!");
     }
@@ -124,8 +130,8 @@ auto VulkanSwapchain::present(
     m_currentFrame = (m_currentFrame + 1u) % m_maxFramesInFlight;
 }
 
-auto VulkanSwapchain::create() -> void {
-    VkExtent2D imageExtent { m_framebufferWidth, m_framebufferHeight };
+auto VulkanSwapchain::create(const uint32_t width, const uint32_t height) -> void {
+    VkExtent2D imageExtent { width, height };
     m_maxFramesInFlight = 2u;
 
     const VulkanDevice::SwapchainSupport swapchainSupport {
@@ -172,8 +178,8 @@ auto VulkanSwapchain::create() -> void {
     const VkExtent2D minImageExtent { swapchainSupport.surfaceCapabilities.minImageExtent };
     const VkExtent2D maxImageExtent { swapchainSupport.surfaceCapabilities.maxImageExtent };
 
-    m_framebufferWidth = std::clamp<uint32_t>(m_framebufferWidth, minImageExtent.width, maxImageExtent.width);
-    m_framebufferHeight = std::clamp<uint32_t>(m_framebufferHeight, minImageExtent.height, maxImageExtent.height);
+    imageExtent.width = std::clamp<uint32_t>(imageExtent.width, minImageExtent.width, maxImageExtent.width);
+    imageExtent.height = std::clamp<uint32_t>(imageExtent.height, minImageExtent.height, maxImageExtent.height);
 
     const uint32_t minImageCount {
         swapchainSupport.surfaceCapabilities.maxImageCount > 0u &&
@@ -288,8 +294,8 @@ auto VulkanSwapchain::create() -> void {
         m_allocationCallbacks,
         m_device,
         VK_IMAGE_TYPE_2D,
-        m_framebufferWidth,
-        m_framebufferHeight,
+        imageExtent.width,
+        imageExtent.height,
         m_device->getDepthFormat(),
         VK_IMAGE_TILING_OPTIMAL,
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -303,6 +309,8 @@ auto VulkanSwapchain::create() -> void {
 
 auto VulkanSwapchain::destroy() -> void {
     const VkDevice logicalDevice { m_device->getLogicalDevice() };
+
+    vkDeviceWaitIdle(logicalDevice);
 
     m_depthAttachment.reset();
 

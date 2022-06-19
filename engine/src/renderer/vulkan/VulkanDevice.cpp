@@ -196,6 +196,14 @@ auto VulkanDevice::getGraphicsCommandPool() const -> const VkCommandPool& {
     return m_graphicsCommandPool;
 }
 
+auto VulkanDevice::getGraphicsQueue() const -> const VkQueue& {
+    return m_graphicsQueue;
+}
+
+auto VulkanDevice::getPresentQueue() const -> const VkQueue& {
+    return m_presentQueue;
+}
+
 auto VulkanDevice::querySwapchainSupport(
     const VkPhysicalDevice& physicalDevice
 ) -> void {

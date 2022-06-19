@@ -37,9 +37,7 @@ m_b { b },
 m_a { a },
 m_depth { depth },
 m_stencil { stencil },
-m_state { State::Ready },
-m_commandBuffer { device },
-m_framebuffer { 0 } {
+m_state { State::Ready } {
     const VkSurfaceFormatKHR surfaceFormat { m_swapchain->getSurfaceFormat() };
     const VkFormat depthFormat { m_device->getDepthFormat() };
     const VkDevice logicalDevice { m_device->getLogicalDevice() };
@@ -144,7 +142,26 @@ auto RenderPass::getRenderPass() const -> const VkRenderPass& {
     return m_renderPass;
 }
 
-auto RenderPass::begin() -> void {
+auto RenderPass::setX(const float x) -> void {
+    m_x = x;
+}
+
+auto RenderPass::setY(const float y) -> void {
+    m_y = y;
+}
+
+auto RenderPass::setW(const float w) -> void {
+    m_w = w;
+}
+
+auto RenderPass::setH(const float h) -> void {
+    m_h = h;
+}
+
+auto RenderPass::begin(
+    std::shared_ptr<CommandBuffer> commandBuffer,
+    const VkFramebuffer& framebuffer
+) -> void {
     const VkOffset2D renderAreaOffset {
         static_cast<int32_t>(m_x),
         static_cast<int32_t>(m_y)
@@ -172,24 +189,24 @@ auto RenderPass::begin() -> void {
         VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,  // sType
         nullptr,                                   // pNext
         m_renderPass,                              // renderPass
-        m_framebuffer,                             // framebuffer
+        framebuffer,                               // framebuffer
         renderArea,                                // renderArea
         static_cast<uint32_t>(clearValues.size()), // clearValueCount
         clearValues.data()                         // pClearValues
     };
 
     vkCmdBeginRenderPass(
-        m_commandBuffer.getCommandBuffer(),
+        commandBuffer->getCommandBuffer(),
         &renderPassBeginInfo,
         VK_SUBPASS_CONTENTS_INLINE
     );
 
-    m_commandBuffer.setState(CommandBuffer::State::InRenderPass);
+    commandBuffer->setState(CommandBuffer::State::InRenderPass);
 }
 
-auto RenderPass::end() -> void {
-    vkCmdEndRenderPass(m_commandBuffer.getCommandBuffer());
-    m_commandBuffer.setState(CommandBuffer::State::Recording);
+auto RenderPass::end(std::shared_ptr<CommandBuffer> commandBuffer) -> void {
+    vkCmdEndRenderPass(commandBuffer->getCommandBuffer());
+    commandBuffer->setState(CommandBuffer::State::Recording);
 }
 
 } // namespace vulkan

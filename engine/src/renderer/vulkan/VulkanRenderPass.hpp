@@ -5,6 +5,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include <memory>
+
 namespace beige {
 namespace renderer {
 namespace vulkan {
@@ -39,9 +41,16 @@ public:
     ~RenderPass();
 
     auto getRenderPass() const -> const VkRenderPass&;
+    auto setX(const float x) -> void;
+    auto setY(const float y) -> void;
+    auto setW(const float w) -> void;
+    auto setH(const float h) -> void;
 
-    auto begin() -> void;
-    auto end() -> void;
+    auto begin(
+        std::shared_ptr<CommandBuffer> commandBuffer,
+        const VkFramebuffer& framebuffer
+    ) -> void;
+    auto end(std::shared_ptr<CommandBuffer> commandBuffer) -> void;
 
 private:
     VkAllocationCallbacks* m_allocationCallbacks;
@@ -62,9 +71,6 @@ private:
     uint32_t m_stencil;
 
     State m_state;
-
-    CommandBuffer m_commandBuffer;
-    VkFramebuffer m_framebuffer;
 };
 
 } // namespace vulkan

@@ -13,6 +13,8 @@ class RendererFrontend final {
 public:
     RendererFrontend(
         const std::string& appName,
+        const uint32_t width,
+        const uint32_t height,
         std::shared_ptr<platform::Platform> platform
     );
     ~RendererFrontend();

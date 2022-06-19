@@ -20,15 +20,17 @@ public:
 
     ~Fence();
 
+    auto getFence() const -> const VkFence&;
+
+    auto wait(const uint64_t timeoutInNs) -> bool;
+    auto reset() -> void;
+
 private:
     VkAllocationCallbacks* m_allocationCallbacks;
     std::shared_ptr<VulkanDevice> m_device;
 
     VkFence m_fence;
     bool m_isSignaled;
-
-    auto wait(const uint64_t timeoutInNs) -> bool;
-    auto reset() -> void;
 };
 
 } // namespace vulkan
