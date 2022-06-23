@@ -11,10 +11,10 @@ namespace beige {
 namespace renderer {
 namespace vulkan {
 
-VulkanDevice::VulkanDevice(
+Device::Device(
     VkAllocationCallbacks* allocationCallbacks,
     const VkInstance& instance,
-    const VkSurfaceKHR& surface
+    std::shared_ptr<Surface> surface
 ) :
 m_allocationCallbacks { allocationCallbacks },
 m_surface { surface },
@@ -153,7 +153,7 @@ m_depthFormat { } {
     core::Logger::info("Graphics command pool created!");
 }
 
-VulkanDevice::~VulkanDevice() {
+Device::~Device() {
     core::Logger::info("Destroying command pools...");
     vkDestroyCommandPool(
         m_logicalDevice,
@@ -169,48 +169,50 @@ VulkanDevice::~VulkanDevice() {
     );
 }
 
-auto VulkanDevice::getLogicalDevice() const -> const VkDevice& {
+auto Device::getLogicalDevice() const -> const VkDevice& {
     return m_logicalDevice;
 }
 
-auto VulkanDevice::getPhysicalDevice() const -> const VkPhysicalDevice& {
+auto Device::getPhysicalDevice() const -> const VkPhysicalDevice& {
     return m_physicalDevice;
 }
 
-auto VulkanDevice::getSwapchainSupport() const -> const SwapchainSupport& {
+auto Device::getSwapchainSupport() const -> const SwapchainSupport& {
     return m_swapchainSupport;
 }
 
-auto VulkanDevice::getGraphicsQueueIndex() const -> const std::optional<uint32_t>& {
+auto Device::getGraphicsQueueIndex() const -> const std::optional<uint32_t>& {
     return m_graphicsQueueIndex;
 }
-auto VulkanDevice::getPresentQueueIndex() const -> const std::optional<uint32_t>& {
+auto Device::getPresentQueueIndex() const -> const std::optional<uint32_t>& {
     return m_presentQueueIndex;
 }
 
-auto VulkanDevice::getDepthFormat() const -> const VkFormat& {
+auto Device::getDepthFormat() const -> const VkFormat& {
     return m_depthFormat;
 }
 
-auto VulkanDevice::getGraphicsCommandPool() const -> const VkCommandPool& {
+auto Device::getGraphicsCommandPool() const -> const VkCommandPool& {
     return m_graphicsCommandPool;
 }
 
-auto VulkanDevice::getGraphicsQueue() const -> const VkQueue& {
+auto Device::getGraphicsQueue() const -> const VkQueue& {
     return m_graphicsQueue;
 }
 
-auto VulkanDevice::getPresentQueue() const -> const VkQueue& {
+auto Device::getPresentQueue() const -> const VkQueue& {
     return m_presentQueue;
 }
 
-auto VulkanDevice::querySwapchainSupport(
+auto Device::querySwapchainSupport(
     const VkPhysicalDevice& physicalDevice
 ) -> void {
+    const VkSurfaceKHR surface { m_surface->getHandle() };
+
     VULKAN_CHECK(
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
             physicalDevice,
-            m_surface,
+            surface,
             &m_swapchainSupport.surfaceCapabilities
         )
     );
@@ -219,7 +221,7 @@ auto VulkanDevice::querySwapchainSupport(
     VULKAN_CHECK(
         vkGetPhysicalDeviceSurfaceFormatsKHR(
             physicalDevice,
-            m_surface,
+            surface,
             &formatCount,
             nullptr
         )
@@ -230,7 +232,7 @@ auto VulkanDevice::querySwapchainSupport(
         VULKAN_CHECK(
             vkGetPhysicalDeviceSurfaceFormatsKHR(
                 physicalDevice,
-                m_surface,
+                surface,
                 &formatCount,
                 m_swapchainSupport.surfaceFormats.data()
             )
@@ -241,7 +243,7 @@ auto VulkanDevice::querySwapchainSupport(
     VULKAN_CHECK(
         vkGetPhysicalDeviceSurfacePresentModesKHR(
             physicalDevice,
-            m_surface,
+            surface,
             &presentModeCount,
             nullptr
         )
@@ -252,7 +254,7 @@ auto VulkanDevice::querySwapchainSupport(
         VULKAN_CHECK(
             vkGetPhysicalDeviceSurfacePresentModesKHR(
                 physicalDevice,
-                m_surface,
+                surface,
                 &presentModeCount,
                 m_swapchainSupport.presentModes.data()
             )
@@ -260,7 +262,7 @@ auto VulkanDevice::querySwapchainSupport(
     }
 }
 
-auto VulkanDevice::detectDepthFormat() -> void {
+auto Device::detectDepthFormat() -> void {
     const std::array<VkFormat, 3u> candidates {
         VK_FORMAT_D32_SFLOAT,
         VK_FORMAT_D32_SFLOAT_S8_UINT,
@@ -290,7 +292,7 @@ auto VulkanDevice::detectDepthFormat() -> void {
     core::Logger::fatal("Failed to find a supported format!");
 }
 
-auto VulkanDevice::selectPhysicalDevice(
+auto Device::selectPhysicalDevice(
     const VkInstance& instance
 ) -> bool {
     uint32_t physicalDeviceCount { 0u };
@@ -413,7 +415,7 @@ auto VulkanDevice::selectPhysicalDevice(
     return true;
 }
 
-auto VulkanDevice::physicalDeviceMeetsRequirements(
+auto Device::physicalDeviceMeetsRequirements(
     const VkPhysicalDevice& physicalDevice,
     const VkPhysicalDeviceProperties& physicalDeviceProperties,
     const VkPhysicalDeviceFeatures& physicalDeviceFeatures,
@@ -440,6 +442,8 @@ auto VulkanDevice::physicalDeviceMeetsRequirements(
 
     uint32_t minTransferScore { 255u };
 
+    const VkSurfaceKHR surface { m_surface->getHandle() };
+
     for (uint32_t i { 0u }; i < queueFamilyProperties.size(); i++) {
         uint32_t currentTransferScore { 0u };
 
@@ -465,7 +469,7 @@ auto VulkanDevice::physicalDeviceMeetsRequirements(
             vkGetPhysicalDeviceSurfaceSupportKHR(
                 physicalDevice,
                 i,
-                m_surface,
+                surface,
                 &supportsPreset
             )
         );

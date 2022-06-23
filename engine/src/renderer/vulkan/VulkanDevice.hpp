@@ -1,5 +1,7 @@
 #pragma once
 
+#include "VulkanSurface.hpp"
+
 #include <vulkan/vulkan.h>
 
 #include <vector>
@@ -10,7 +12,7 @@ namespace beige {
 namespace renderer {
 namespace vulkan {
 
-class VulkanDevice final {
+class Device final {
 public:
     struct SwapchainSupport {
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -18,13 +20,13 @@ public:
         std::vector<VkPresentModeKHR> presentModes;
     };
 
-    VulkanDevice(
+    Device(
         VkAllocationCallbacks* allocationCallbacks,
         const VkInstance& instance,
-        const VkSurfaceKHR& surface
+        std::shared_ptr<Surface> surface
     );
 
-    ~VulkanDevice();
+    ~Device();
 
     auto getLogicalDevice() const -> const VkDevice&;
     auto getPhysicalDevice() const -> const VkPhysicalDevice&;
@@ -61,7 +63,7 @@ private:
     };
 
     VkAllocationCallbacks* m_allocationCallbacks;
-    VkSurfaceKHR m_surface;
+    std::shared_ptr<Surface> m_surface;
 
     VkPhysicalDevice m_physicalDevice;
     VkDevice m_logicalDevice;

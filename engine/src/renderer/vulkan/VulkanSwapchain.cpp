@@ -10,15 +10,15 @@ namespace beige {
 namespace renderer {
 namespace vulkan {
 
-VulkanSwapchain::VulkanSwapchain(
+Swapchain::Swapchain(
     const uint32_t width,
     const uint32_t height,
-    const VkSurfaceKHR& surface,
     VkAllocationCallbacks* allocationCallbacks,
-    std::shared_ptr<VulkanDevice> device
+    std::shared_ptr<Surface> surface,
+    std::shared_ptr<Device> device
 ) :
-m_surface { surface },
 m_allocationCallbacks { allocationCallbacks },
+m_surface{ surface },
 m_device { device },
 m_surfaceFormat { },
 m_maxFramesInFlight { 0u },
@@ -32,40 +32,40 @@ m_depthAttachment { nullptr } {
     create(width, height);
 }
 
-VulkanSwapchain::~VulkanSwapchain() {
+Swapchain::~Swapchain() {
     destroy();
 }
 
-auto VulkanSwapchain::getSurfaceFormat() const -> const VkSurfaceFormatKHR& {
+auto Swapchain::getSurfaceFormat() const -> const VkSurfaceFormatKHR& {
     return m_surfaceFormat;
 }
 
-auto VulkanSwapchain::getImages() const -> const std::vector<VkImage>& {
+auto Swapchain::getImages() const -> const std::vector<VkImage>& {
     return m_images;
 }
 
-auto VulkanSwapchain::getImageViews() const -> const std::vector<VkImageView>& {
+auto Swapchain::getImageViews() const -> const std::vector<VkImageView>& {
     return m_imageViews;
 }
 
-auto VulkanSwapchain::getDepthAttachment() const -> const std::shared_ptr<Image>& {
+auto Swapchain::getDepthAttachment() const -> const std::shared_ptr<Image>& {
     return m_depthAttachment;
 }
 
-auto VulkanSwapchain::getMaxFramesInFlight() const -> const uint32_t {
+auto Swapchain::getMaxFramesInFlight() const -> const uint32_t {
     return m_maxFramesInFlight;
 }
 
-auto VulkanSwapchain::getCurrentFrame() const -> const uint32_t {
+auto Swapchain::getCurrentFrame() const -> const uint32_t {
     return m_currentFrame;
 }
 
-auto VulkanSwapchain::recreate(const uint32_t width, const uint32_t height) -> void {
+auto Swapchain::recreate(const uint32_t width, const uint32_t height) -> void {
     destroy();
     create(width, height);
 }
 
-auto VulkanSwapchain::acquireNextImageIndex(
+auto Swapchain::acquireNextImageIndex(
     const uint32_t width,
     const uint32_t height,
     const uint64_t timeoutInNs,
@@ -97,7 +97,7 @@ auto VulkanSwapchain::acquireNextImageIndex(
     return std::optional<uint32_t>(imageIndex);
 }
 
-auto VulkanSwapchain::present(
+auto Swapchain::present(
     const uint32_t width,
     const uint32_t height,
     const VkQueue& graphicsQueue,
@@ -130,11 +130,11 @@ auto VulkanSwapchain::present(
     m_currentFrame = (m_currentFrame + 1u) % m_maxFramesInFlight;
 }
 
-auto VulkanSwapchain::create(const uint32_t width, const uint32_t height) -> void {
+auto Swapchain::create(const uint32_t width, const uint32_t height) -> void {
     VkExtent2D imageExtent { width, height };
     m_maxFramesInFlight = 2u;
 
-    const VulkanDevice::SwapchainSupport swapchainSupport {
+    const Device::SwapchainSupport swapchainSupport {
         m_device->getSwapchainSupport()
     };
 
@@ -190,7 +190,7 @@ auto VulkanSwapchain::create(const uint32_t width, const uint32_t height) -> voi
 
     VkSwapchainCreateInfoKHR swapchainCreateInfo { };
     swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapchainCreateInfo.surface = m_surface;
+    swapchainCreateInfo.surface = m_surface->getHandle();
     swapchainCreateInfo.minImageCount = minImageCount;
     swapchainCreateInfo.imageFormat = m_surfaceFormat.format;
     swapchainCreateInfo.imageColorSpace = m_surfaceFormat.colorSpace;
@@ -307,7 +307,7 @@ auto VulkanSwapchain::create(const uint32_t width, const uint32_t height) -> voi
     core::Logger::info("Swapchain created successfully!");
 }
 
-auto VulkanSwapchain::destroy() -> void {
+auto Swapchain::destroy() -> void {
     const VkDevice logicalDevice { m_device->getLogicalDevice() };
 
     vkDeviceWaitIdle(logicalDevice);

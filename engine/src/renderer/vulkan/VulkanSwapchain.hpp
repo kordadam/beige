@@ -14,16 +14,16 @@ namespace beige {
 namespace renderer {
 namespace vulkan {
 
-class VulkanSwapchain final {
+class Swapchain final {
 public:
-    VulkanSwapchain(
+    Swapchain(
         const uint32_t width,
         const uint32_t height,
-        const VkSurfaceKHR& surface,
         VkAllocationCallbacks* allocationCallbacks,
-        std::shared_ptr<VulkanDevice> device
+        std::shared_ptr<Surface> surface,
+        std::shared_ptr<Device> device
     );
-    ~VulkanSwapchain();
+    ~Swapchain();
 
     auto getSurfaceFormat() const -> const VkSurfaceFormatKHR&;
     auto getImages() const -> const std::vector<VkImage>&;
@@ -52,9 +52,10 @@ public:
     ) -> void;
 
 private:
-    VkSurfaceKHR m_surface;
     VkAllocationCallbacks* m_allocationCallbacks;
-    std::shared_ptr<VulkanDevice> m_device;
+    std::shared_ptr<Surface> m_surface;
+    std::shared_ptr<Device> m_device;
+
     VkSurfaceFormatKHR m_surfaceFormat;
     uint32_t m_maxFramesInFlight;
     VkSwapchainKHR m_swapchain;

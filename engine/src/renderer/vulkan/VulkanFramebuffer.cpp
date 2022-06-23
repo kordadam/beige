@@ -8,7 +8,7 @@ namespace vulkan {
 
 Framebuffer::Framebuffer(
     VkAllocationCallbacks* allocationCallbacks,
-    std::shared_ptr<VulkanDevice> device,
+    std::shared_ptr<Device> device,
     const std::shared_ptr<RenderPass> renderPass,
     const uint32_t width,
     const uint32_t height,

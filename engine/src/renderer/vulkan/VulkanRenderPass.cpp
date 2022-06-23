@@ -10,8 +10,8 @@ namespace vulkan {
 
 RenderPass::RenderPass(
     VkAllocationCallbacks* allocationCallbacks,
-    std::shared_ptr<VulkanSwapchain> swapchain,
-    std::shared_ptr<VulkanDevice> device,
+    std::shared_ptr<Swapchain> swapchain,
+    std::shared_ptr<Device> device,
     const float x,
     const float y,
     const float w,

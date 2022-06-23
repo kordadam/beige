@@ -8,7 +8,7 @@ namespace vulkan {
 
 Fence::Fence(
     VkAllocationCallbacks* allocationCallbacks,
-    std::shared_ptr<VulkanDevice> device,
+    std::shared_ptr<Device> device,
     const bool createSignaled
 ) :
 m_allocationCallbacks{ allocationCallbacks },

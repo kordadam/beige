@@ -4,7 +4,7 @@ namespace beige {
 namespace renderer {
 namespace vulkan {
 
-auto Utils::resultToString(const VkResult& result, const bool getExtended)->std::string {
+auto Utils::resultToString(const VkResult& result, const bool getExtended) -> std::string {
     // https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html/VkResult.html
     switch (result) {
     default: [[fallthrough]];

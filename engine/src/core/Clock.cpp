@@ -20,7 +20,7 @@ auto Clock::getElapsedTime() -> float {
 auto Clock::getAbsoluteTime() -> float {
     return
         std::chrono::duration_cast<std::chrono::duration<float>>(
-            std::chrono::high_resolution_clock::now().time_since_epoch()
+            std::chrono::high_resolution_clock::now() - m_startTime
         ).count();
 }
 

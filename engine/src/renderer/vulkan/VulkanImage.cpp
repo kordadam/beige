@@ -8,7 +8,7 @@ namespace vulkan {
 
 Image::Image(
     VkAllocationCallbacks* allocationCallbacks,
-    std::shared_ptr<VulkanDevice> device,
+    std::shared_ptr<Device> device,
     const VkImageType& imageType,
     const uint32_t width,
     const uint32_t height,

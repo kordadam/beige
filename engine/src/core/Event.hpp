@@ -15,18 +15,19 @@ public:
     Event() = default;
     virtual ~Event() = default;
 
-    virtual auto subscribe(const Callback& callback) -> Subscription;
-    virtual auto unsubscribe(const Subscription subscription) -> void;
+    virtual auto subscribe(const Callback& callback) -> Subscription final;
+    virtual auto unsubscribe(const Subscription subscription) -> void final;
 
 protected:
-    std::vector<Callback> m_listeners;
+    virtual auto notifyListeners(const Arguments&... arguments) -> void final;
 
-    virtual auto notifyListeners(const Arguments&... arguments) -> void;
+private:
+    std::vector<Callback> m_listeners;
 };
 
 template<typename... Arguments>
 auto Event<Arguments...>::subscribe(const Callback& callback) -> Subscription {
-    Subscription subscription { static_cast<Subscription>(m_listeners.size()) };
+    const Subscription subscription { static_cast<Subscription>(m_listeners.size()) };
     m_listeners.push_back(callback);
     return subscription;
 }

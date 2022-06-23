@@ -15,6 +15,14 @@ set(SRC
     src/core/InputTypes.hpp
     src/core/Logger.cpp
     src/core/Logger.hpp
+    src/math/Math.hpp
+    src/math/MathConstans.hpp
+    src/math/MathVector2.cpp
+    src/math/MathVector2.hpp
+    src/math/MathVector3.cpp
+    src/math/MathVector3.hpp
+    src/math/MathVector4.cpp
+    src/math/MathVector4.hpp
     src/platform/Platform.hpp
     src/platform/PlatformTypes.hpp
     src/platform/PlatformWin32.cpp
@@ -33,6 +41,8 @@ set(SRC
     src/renderer/vulkan/VulkanImage.hpp
     src/renderer/vulkan/VulkanRenderPass.cpp
     src/renderer/vulkan/VulkanRenderPass.hpp
+    src/renderer/vulkan/VulkanSurface.cpp
+    src/renderer/vulkan/VulkanSurface.hpp
     src/renderer/vulkan/VulkanSwapchain.cpp
     src/renderer/vulkan/VulkanSwapchain.hpp
     src/renderer/vulkan/VulkanUtils.cpp

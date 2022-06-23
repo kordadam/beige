@@ -14,7 +14,7 @@ class Image final {
 public:
     Image(
         VkAllocationCallbacks* allocationCallbacks,
-        std::shared_ptr<VulkanDevice> device,
+        std::shared_ptr<Device> device,
         const VkImageType& imageType,
         const uint32_t width,
         const uint32_t height,
@@ -31,7 +31,7 @@ public:
 
 private:
     VkAllocationCallbacks* m_allocationCallbacks;
-    std::shared_ptr<VulkanDevice> m_device;
+    std::shared_ptr<Device> m_device;
 
     VkImage m_image;
     VkDeviceMemory m_deviceMemory;

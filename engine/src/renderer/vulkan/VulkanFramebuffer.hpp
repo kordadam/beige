@@ -14,7 +14,7 @@ class Framebuffer final {
 public:
     Framebuffer(
         VkAllocationCallbacks* allocationCallbacks,
-        std::shared_ptr<VulkanDevice> device,
+        std::shared_ptr<Device> device,
         std::shared_ptr<RenderPass> renderPass,
         const uint32_t width,
         const uint32_t height,
@@ -27,7 +27,7 @@ public:
 
 private:
     VkAllocationCallbacks* m_allocationCallbacks;
-    std::shared_ptr<VulkanDevice> m_device;
+    std::shared_ptr<Device> m_device;
     std::shared_ptr<RenderPass> m_renderPass;
 
     VkFramebuffer m_framebuffer;

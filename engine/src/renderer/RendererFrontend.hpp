@@ -20,12 +20,14 @@ public:
     ~RendererFrontend();
 
     auto onResized(const uint16_t width, const uint16_t height) -> void;
-    auto beginFrame(const float deltaTime) -> bool;
-    auto endFrame(const float deltaTime) -> bool;
     auto drawFrame(const Packet& packet) -> bool;
 
 private:
     std::unique_ptr<IRendererBackend> m_rendererBackend;
+    uint64_t m_frameCount;
+
+    auto beginFrame(const float deltaTime) -> bool;
+    auto endFrame(const float deltaTime) -> bool;
 };
 
 } // namespace renderer

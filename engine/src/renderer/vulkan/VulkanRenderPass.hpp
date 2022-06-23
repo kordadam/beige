@@ -24,8 +24,8 @@ public:
 
     RenderPass(
         VkAllocationCallbacks* allocationCallbacks,
-        std::shared_ptr<VulkanSwapchain> swapchain,
-        std::shared_ptr<VulkanDevice> device,
+        std::shared_ptr<Swapchain> swapchain,
+        std::shared_ptr<Device> device,
         const float x,
         const float y,
         const float w,
@@ -54,8 +54,8 @@ public:
 
 private:
     VkAllocationCallbacks* m_allocationCallbacks;
-    std::shared_ptr<VulkanSwapchain> m_swapchain;
-    std::shared_ptr<VulkanDevice> m_device;
+    std::shared_ptr<Swapchain> m_swapchain;
+    std::shared_ptr<Device> m_device;
 
     VkRenderPass m_renderPass;
     float m_x;

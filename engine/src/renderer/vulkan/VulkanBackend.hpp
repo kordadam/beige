@@ -2,6 +2,7 @@
 
 #include "../IRendererBackend.hpp"
 
+#include "VulkanSurface.hpp"
 #include "VulkanDevice.hpp"
 #include "VulkanSwapchain.hpp"
 #include "VulkanRenderPass.hpp"
@@ -29,6 +30,8 @@ public:
     auto drawFrame(const Packet& packet) -> bool override;
 
 private:
+    std::shared_ptr<platform::Platform> m_platform;
+
     uint32_t m_framebufferWidth;
     uint32_t m_framebufferHeight;
     uint64_t m_framebufferSizeGeneration;
@@ -36,14 +39,14 @@ private:
 
     VkAllocationCallbacks* m_allocationCallbacks;
     VkInstance m_instance;
-    VkSurfaceKHR m_surface;
 
 #if defined(BEIGE_DEBUG)
     VkDebugUtilsMessengerEXT m_debugUtilsMessenger;
 #endif // BEIGE_DEBUG
 
-    std::shared_ptr<VulkanDevice> m_device;
-    std::shared_ptr<VulkanSwapchain> m_swapchain;
+    std::shared_ptr<Surface> m_surface;
+    std::shared_ptr<Device> m_device;
+    std::shared_ptr<Swapchain> m_swapchain;
     bool m_recreatingSwapchain;
     std::shared_ptr<RenderPass> m_mainRenderPass;
     uint32_t m_imageIndex;

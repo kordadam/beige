@@ -7,7 +7,7 @@ namespace renderer {
 namespace vulkan {
 
 CommandBuffer::CommandBuffer(
-    std::shared_ptr<VulkanDevice> device
+    std::shared_ptr<Device> device
 ) :
 m_device { device },
 m_commandBuffer { 0 },

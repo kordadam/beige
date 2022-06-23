@@ -18,19 +18,20 @@ VulkanBackend::VulkanBackend(
     const uint32_t height,
     std::shared_ptr<platform::Platform> platform
 ) :
-IRendererBackend { appName, width, height, platform },
+IRendererBackend { },
+m_platform { platform },
 m_framebufferWidth { width },
 m_framebufferHeight { height },
 m_framebufferSizeGeneration { 0u },
 m_framebufferSizeLastGeneration { 0u },
 m_allocationCallbacks { nullptr }, // TODO: Custom allocator
 m_instance { 0 },
-m_surface { 0 },
 
 #if defined(BEIGE_DEBUG)
 m_debugUtilsMessenger { 0 },
 #endif // BEIGE_DEBUG
 
+m_surface { nullptr },
 m_device { nullptr },
 m_swapchain { nullptr },
 m_recreatingSwapchain { false },
@@ -184,31 +185,23 @@ m_imagesInFlight { } {
     core::Logger::debug("Vulkan debugger created!");
 #endif // BEIGE_DEBUG
 
-    core::Logger::info("Creating Vulkan surface...");
+    m_surface = std::make_shared<Surface>(
+        m_allocationCallbacks,
+        m_instance,
+        m_platform
+    );
 
-    std::optional<VkSurfaceKHR> surface {
-        m_platform->createVulkanSurface(m_instance, m_allocationCallbacks)
-    };
-
-    if (surface.has_value()) {
-        m_surface = surface.value();
-    } else {
-        throw std::exception("Failed to create platform surface!");
-    }
-
-    core::Logger::info("Vulkan surface created!");
-
-    m_device = std::make_shared<VulkanDevice>(
+    m_device = std::make_shared<Device>(
         m_allocationCallbacks,
         m_instance,
         m_surface
     );
 
-    m_swapchain = std::make_shared<VulkanSwapchain>(
+    m_swapchain = std::make_shared<Swapchain>(
         100u,
         100u,
-        m_surface,
         m_allocationCallbacks,
+        m_surface,
         m_device
     );
 
@@ -351,7 +344,7 @@ VulkanBackend::~VulkanBackend() {
     m_device.reset();
 
     core::Logger::info("Destroying Vulkan surface...");
-    vkDestroySurfaceKHR(m_instance, m_surface, m_allocationCallbacks);
+    m_surface.reset();
 
 #ifdef BEIGE_DEBUG
     core::Logger::debug("Destroying Vulkan debugger...");

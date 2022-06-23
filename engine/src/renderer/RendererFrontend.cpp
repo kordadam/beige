@@ -12,7 +12,15 @@ RendererFrontend::RendererFrontend(
     const uint32_t height,
     std::shared_ptr<platform::Platform> platform
 ) :
-m_rendererBackend { std::make_unique<vulkan::VulkanBackend>(appName, width, height, platform) } {
+m_rendererBackend {
+    std::make_unique<vulkan::VulkanBackend>(
+        appName,
+        width,
+        height,
+        platform
+    )
+},
+m_frameCount { 0u } {
 
 }
 
@@ -22,16 +30,6 @@ RendererFrontend::~RendererFrontend() {
 
 auto RendererFrontend::onResized(const uint16_t width, const uint16_t height) -> void {
     m_rendererBackend->onResized(width, height);
-}
-
-auto RendererFrontend::beginFrame(const float deltaTime) -> bool {
-    return m_rendererBackend->beginFrame(deltaTime);
-}
-
-auto RendererFrontend::endFrame(const float deltaTime) -> bool {
-    const bool result { m_rendererBackend->endFrame(deltaTime) };
-    m_rendererBackend->setFrameCount(m_rendererBackend->getFrameCount() + 1u);
-    return result;
 }
 
 auto RendererFrontend::drawFrame(const Packet& packet) -> bool {
@@ -47,6 +45,16 @@ auto RendererFrontend::drawFrame(const Packet& packet) -> bool {
     }
 
     return m_rendererBackend->drawFrame(packet);
+}
+
+auto RendererFrontend::beginFrame(const float deltaTime) -> bool {
+    return m_rendererBackend->beginFrame(deltaTime);
+}
+
+auto RendererFrontend::endFrame(const float deltaTime) -> bool {
+    const bool result{ m_rendererBackend->endFrame(deltaTime) };
+    m_frameCount++;
+    return result;
 }
 
 } // namespace renderer

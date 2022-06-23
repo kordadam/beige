@@ -22,7 +22,7 @@ public:
     };
 
     CommandBuffer(
-        std::shared_ptr<VulkanDevice> device
+        std::shared_ptr<Device> device
     );
 
     ~CommandBuffer();
@@ -57,7 +57,7 @@ public:
     ) -> void;
 
 private:
-    std::shared_ptr<VulkanDevice> m_device;
+    std::shared_ptr<Device> m_device;
 
     VkCommandBuffer m_commandBuffer;
     State m_state;

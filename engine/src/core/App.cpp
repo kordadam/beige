@@ -173,7 +173,7 @@ auto App::run() -> bool {
                 const uint64_t remainingInMs { static_cast<uint64_t>(remainingInSeconds * 1000.0f) };
                 const float isFrameLimit { false };
                 if (remainingInMs > 0u && isFrameLimit) {
-                    m_platform->Sleep(remainingInMs);
+                    m_platform->Sleep(remainingInMs - 1u);
                 }
                 frameCount++;
             }
