@@ -1,5 +1,7 @@
 #include "MathVector2.hpp"
 
+#include "MathConstans.hpp"
+
 #include <cmath>
 
 namespace beige {

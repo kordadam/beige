@@ -17,6 +17,12 @@ set(SRC
     src/core/Logger.hpp
     src/math/Math.hpp
     src/math/MathConstans.hpp
+    src/math/MathMatrix4x4.cpp
+    src/math/MathMatrix4x4.hpp
+    src/math/MathQuaternion.cpp
+    src/math/MathQuaternion.hpp
+    src/math/MathRandom.cpp
+    src/math/MathRandom.hpp
     src/math/MathVector2.cpp
     src/math/MathVector2.hpp
     src/math/MathVector3.cpp

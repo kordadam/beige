@@ -23,11 +23,11 @@ w { value } {
 
 }
 
-Vector4::Vector4(const float xValue, const float yValue, const float zValue, const float wValue) :
-x { xValue },
-y { yValue },
-z { zValue },
-w { wValue } {
+Vector4::Vector4(const float x, const float y, const float z, const float w) :
+x { x },
+y { y },
+z { z },
+w { w } {
 
 }
 

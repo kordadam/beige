@@ -17,7 +17,7 @@ public:
 
     Vector4();
     Vector4(const float value);
-    Vector4(const float xValue, const float yValue, const float zValue, const float wValue);
+    Vector4(const float x, const float y, const float z, const float w);
     Vector4(const Vector3& a);
     ~Vector4() = default;
 
