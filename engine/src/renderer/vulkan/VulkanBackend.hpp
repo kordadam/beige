@@ -8,6 +8,7 @@
 #include "VulkanRenderPass.hpp"
 #include "VulkanFramebuffer.hpp"
 #include "VulkanFence.hpp"
+#include "shaders/VulkanShaderObject.hpp"
 
 namespace beige {
 namespace renderer {
@@ -52,6 +53,7 @@ private:
     uint32_t m_imageIndex;
     std::vector<std::shared_ptr<Framebuffer>> m_framebuffers; // Framebuffers used for on-screen rendering
     std::vector<std::shared_ptr<CommandBuffer>> m_graphicsCommandBuffers;
+    std::shared_ptr<ShaderObject> m_shaderObject;
 
     std::vector<VkSemaphore> m_imageAvailableSemaphores;
     std::vector<VkSemaphore> m_queueCompleteSemaphores;

@@ -32,6 +32,8 @@ set(SRC
     src/platform/Platform.hpp
     src/platform/PlatformTypes.hpp
     src/platform/PlatformWin32.cpp
+    src/renderer/vulkan/shaders/VulkanShaderObject.cpp
+    src/renderer/vulkan/shaders/VulkanShaderObject.hpp
     src/renderer/vulkan/VulkanBackend.cpp
     src/renderer/vulkan/VulkanBackend.hpp
     src/renderer/vulkan/VulkanCommandBuffer.cpp
@@ -114,4 +116,4 @@ include_directories(
 add_definitions(-DBEIGE_EXPORT -DBEIGE_DEBUG)
 add_library(engine SHARED ${SRC})
 target_link_libraries(engine ${VULKAN_LIBRARIES})
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)

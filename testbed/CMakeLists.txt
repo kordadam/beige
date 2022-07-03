@@ -60,4 +60,4 @@ include_directories(
 )
 add_executable(testbed ${SRC})
 target_link_libraries(testbed engine ${VULKAN_LIBRARIES})
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)

@@ -38,6 +38,7 @@ m_recreatingSwapchain { false },
 m_mainRenderPass { nullptr },
 m_imageIndex { 0u },
 m_graphicsCommandBuffers { },
+m_shaderObject { },
 m_imageAvailableSemaphores { },
 m_queueCompleteSemaphores { },
 m_inFlightFences { },
@@ -276,6 +277,11 @@ m_imagesInFlight { } {
         nullptr
     );
 
+    m_shaderObject = std::make_shared<ShaderObject>(
+        m_allocationCallbacks,
+        m_device
+    );
+
     core::Logger::info("Vulkan renderer initialized successfully!");
 }
 
@@ -284,6 +290,9 @@ VulkanBackend::~VulkanBackend() {
     const VkCommandPool graphicsCommandPool { m_device->getGraphicsCommandPool() };
 
     vkDeviceWaitIdle(logicalDevice);
+
+    core::Logger::info("Destroying shader object...");
+    m_shaderObject.reset();
 
     core::Logger::info("Destroying images in-flight...");
     m_imagesInFlight.clear();
