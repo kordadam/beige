@@ -47,6 +47,8 @@ set(SRC
     src/renderer/vulkan/VulkanFramebuffer.hpp
     src/renderer/vulkan/VulkanImage.cpp
     src/renderer/vulkan/VulkanImage.hpp
+    src/renderer/vulkan/VulkanPipeline.cpp
+    src/renderer/vulkan/VulkanPipeline.hpp
     src/renderer/vulkan/VulkanRenderPass.cpp
     src/renderer/vulkan/VulkanRenderPass.hpp
     src/renderer/vulkan/VulkanSurface.cpp

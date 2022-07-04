@@ -11,7 +11,10 @@ namespace core {
 #define LOG_INFO_ENABLED 1
 #define LOG_WARN_ENABLED 1
 
-const std::map<Logger::Level, platform::ConsoleColor> Logger::m_levelConsoleColorMap{
+std::fstream Logger::m_logFile { };
+Logger::Initializer Logger::m_initializer { };
+
+const std::map<Logger::Level, platform::ConsoleColor> Logger::m_levelConsoleColorMap {
     { Level::Trace, platform::ConsoleColor::Gray },
     { Level::Debug, platform::ConsoleColor::Cyan },
     { Level::Info, platform::ConsoleColor::Green },
@@ -88,6 +91,11 @@ auto Logger::writeLog(const Level level, const std::string& message) -> void {
     std::stringstream consoleMessage;
     consoleMessage << level << " " << message;
     platform::Platform::consoleWrite(consoleMessage.str(), m_levelConsoleColorMap.at(level));
+    appendToLogFile(consoleMessage.str() + "\n");
+}
+
+auto Logger::appendToLogFile(const std::string& message) -> void {
+    m_logFile.write(message.c_str(), message.size());
 }
 
 } // namespace core

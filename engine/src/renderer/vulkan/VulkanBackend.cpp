@@ -279,7 +279,10 @@ m_imagesInFlight { } {
 
     m_shaderObject = std::make_shared<ShaderObject>(
         m_allocationCallbacks,
-        m_device
+        m_device,
+        m_mainRenderPass,
+        m_framebufferWidth,
+        m_framebufferHeight
     );
 
     core::Logger::info("Vulkan renderer initialized successfully!");

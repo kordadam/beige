@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../VulkanDevice.hpp"
+#include "../VulkanPipeline.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -15,7 +16,10 @@ class ShaderObject final {
 public:
     ShaderObject(
         VkAllocationCallbacks* allocationCallbacks,
-        std::shared_ptr<Device> device
+        std::shared_ptr<Device> device,
+        std::shared_ptr<RenderPass> renderPass,
+        const uint32_t framebufferWidth,
+        const uint32_t framebufferHeight
     );
     ~ShaderObject();
 
@@ -28,19 +32,15 @@ private:
         VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo;
     };
 
-    struct Pipeline {
-        VkPipeline pipeline;
-        VkPipelineLayout pipelineLayout;
-    };
-
     static constexpr uint32_t m_stageCount { 2u };
     static constexpr std::string_view m_builtinShaderName { "Builtin.ObjectShader" };
 
     VkAllocationCallbacks* m_allocationCallbacks;
     std::shared_ptr<Device> m_device;
+    std::shared_ptr<RenderPass> m_renderPass;
 
     std::array<Stage, m_stageCount> m_stages;
-    Pipeline m_pipeline;
+    std::shared_ptr<Pipeline> m_pipeline;
 
     auto createShaderModule(
         Stage& stage,

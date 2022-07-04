@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdint>
 #include <map>
+#include <fstream>
 
 namespace beige {
 namespace core {
@@ -39,11 +40,23 @@ private:
         Fatal
     };
 
-    friend auto operator<< (std::ostream& outputStream, const Level level) -> std::ostream&;
+    static std::fstream m_logFile;
+    static class Initializer {
+    public:
+        Initializer() {
+            m_logFile.open("console.log", std::fstream::out);
+        }
+        ~Initializer() {
+            m_logFile.close();
+        }
+    } m_initializer;
 
     static const std::map<Level, platform::ConsoleColor> m_levelConsoleColorMap;
 
+    friend auto operator<< (std::ostream& outputStream, const Level level)->std::ostream&;
+
     static auto writeLog(const Level level, const std::string& message) -> void;
+    static auto appendToLogFile(const std::string& message) -> void;
 };
 
 } // namespace core
