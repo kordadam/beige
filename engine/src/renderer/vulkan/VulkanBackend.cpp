@@ -3,6 +3,7 @@
 #include "../../core/Logger.hpp"
 #include "VulkanDefines.hpp"
 #include "VulkanUtils.hpp"
+#include "../../math/Math.hpp"
 
 #include <algorithm>
 #include <array>
@@ -36,13 +37,17 @@ m_device { nullptr },
 m_swapchain { nullptr },
 m_recreatingSwapchain { false },
 m_mainRenderPass { nullptr },
+m_objectVertexBuffer { nullptr },
+m_objectIndexBuffer { nullptr },
 m_imageIndex { 0u },
 m_graphicsCommandBuffers { },
 m_shaderObject { },
 m_imageAvailableSemaphores { },
 m_queueCompleteSemaphores { },
 m_inFlightFences { },
-m_imagesInFlight { } {
+m_imagesInFlight { },
+m_geometryVertexOffset { 0u },
+m_geometryIndexOffset { 0u } {
     const VkApplicationInfo applicationInfo {
         VK_STRUCTURE_TYPE_APPLICATION_INFO, // sType
         nullptr,                            // pNext
@@ -285,6 +290,8 @@ m_imagesInFlight { } {
         m_framebufferHeight
     );
 
+    createBuffers();
+
     core::Logger::info("Vulkan renderer initialized successfully!");
 }
 
@@ -293,6 +300,9 @@ VulkanBackend::~VulkanBackend() {
     const VkCommandPool graphicsCommandPool { m_device->getGraphicsCommandPool() };
 
     vkDeviceWaitIdle(logicalDevice);
+
+    m_objectIndexBuffer.reset();
+    m_objectVertexBuffer.reset();
 
     core::Logger::info("Destroying shader object...");
     m_shaderObject.reset();
@@ -688,6 +698,44 @@ auto VulkanBackend::recreateSwapchain() -> bool {
     m_recreatingSwapchain = false;
 
     return true;
+}
+
+auto VulkanBackend::createBuffers() -> void {
+    const VkMemoryPropertyFlags memoryPropertyFlags {
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    };
+
+    const VkBufferUsageFlags vertexBufferUsageFlags {
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT
+    };
+    const uint64_t vertexBufferSize { sizeof(math::Vertex3D) * 1024u * 1024u };
+    m_objectVertexBuffer = std::make_unique<Buffer>(
+        m_allocationCallbacks,
+        m_device,
+        vertexBufferSize,
+        vertexBufferUsageFlags,
+        memoryPropertyFlags,
+        true
+    );
+    m_geometryVertexOffset = 0u;
+
+    const VkBufferUsageFlags indexBufferUsageFlags {
+        VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT
+    };
+    const uint64_t indexBufferSize { sizeof(uint32_t) * 1024u * 1024u };
+    m_objectIndexBuffer = std::make_unique<Buffer>(
+        m_allocationCallbacks,
+        m_device,
+        indexBufferSize,
+        indexBufferUsageFlags,
+        memoryPropertyFlags,
+        true
+    );
+    m_geometryIndexOffset = 0u;
 }
 
 } // namespace vulkan

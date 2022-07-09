@@ -36,6 +36,8 @@ set(SRC
     src/renderer/vulkan/shaders/VulkanShaderObject.hpp
     src/renderer/vulkan/VulkanBackend.cpp
     src/renderer/vulkan/VulkanBackend.hpp
+    src/renderer/vulkan/VulkanBuffer.cpp
+    src/renderer/vulkan/VulkanBuffer.hpp
     src/renderer/vulkan/VulkanCommandBuffer.cpp
     src/renderer/vulkan/VulkanCommandBuffer.hpp
     src/renderer/vulkan/VulkanDefines.hpp

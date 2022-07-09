@@ -8,6 +8,7 @@
 #include "VulkanRenderPass.hpp"
 #include "VulkanFramebuffer.hpp"
 #include "VulkanFence.hpp"
+#include "VulkanBuffer.hpp"
 #include "shaders/VulkanShaderObject.hpp"
 
 namespace beige {
@@ -50,6 +51,10 @@ private:
     std::shared_ptr<Swapchain> m_swapchain;
     bool m_recreatingSwapchain;
     std::shared_ptr<RenderPass> m_mainRenderPass;
+
+    std::unique_ptr<Buffer> m_objectVertexBuffer;
+    std::unique_ptr<Buffer> m_objectIndexBuffer;
+
     uint32_t m_imageIndex;
     std::vector<std::shared_ptr<Framebuffer>> m_framebuffers; // Framebuffers used for on-screen rendering
     std::vector<std::shared_ptr<CommandBuffer>> m_graphicsCommandBuffers;
@@ -60,9 +65,13 @@ private:
     std::vector<std::shared_ptr<Fence>> m_inFlightFences;
     std::vector<std::shared_ptr<Fence>> m_imagesInFlight; // Holds pointers to fences which exist and are owned elsewhere
 
+    uint64_t m_geometryVertexOffset;
+    uint64_t m_geometryIndexOffset;
+
     auto regenerateFramebuffers() -> void;
     auto createCommandBuffers() -> void;
     auto recreateSwapchain() -> bool;
+    auto createBuffers() -> void;
 };
 
 } // namespace vulkan

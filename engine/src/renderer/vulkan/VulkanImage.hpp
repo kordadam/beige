@@ -43,11 +43,6 @@ private:
         const VkFormat& format,
         const VkImageAspectFlags& imageAspectFlags
     ) -> void;
-
-    auto findMemoryIndex(
-        const uint32_t typeFilter,
-        const uint32_t propertyFlags
-    ) -> int32_t;
 };
 
 } // namespace vulkan

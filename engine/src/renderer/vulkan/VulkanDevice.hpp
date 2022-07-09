@@ -44,6 +44,11 @@ public:
 
     auto detectDepthFormat() -> void;
 
+    auto findMemoryIndex(
+        const uint32_t typeFilter,
+        const uint32_t propertyFlags
+    ) -> std::optional<uint32_t>;
+
 private:
     struct PhysicalDeviceRequirements {
         bool graphics;

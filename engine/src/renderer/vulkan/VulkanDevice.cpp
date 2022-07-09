@@ -292,6 +292,29 @@ auto Device::detectDepthFormat() -> void {
     core::Logger::fatal("Failed to find a supported format!");
 }
 
+auto Device::findMemoryIndex(
+    const uint32_t typeFilter,
+    const uint32_t propertyFlags
+) -> std::optional<uint32_t> {
+    VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
+    vkGetPhysicalDeviceMemoryProperties(
+        m_physicalDevice,
+        &physicalDeviceMemoryProperties
+    );
+
+    for (uint32_t i { 0u }; i < physicalDeviceMemoryProperties.memoryTypeCount; i++) {
+        if (
+            (typeFilter & (1u << i)) &&
+            ((physicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags)
+        ) {
+            return std::optional<uint32_t>(i);
+        }
+    }
+
+    core::Logger::warn("Unable to find suitable memory type!");
+    return std::nullopt;
+}
+
 auto Device::selectPhysicalDevice(
     const VkInstance& instance
 ) -> bool {

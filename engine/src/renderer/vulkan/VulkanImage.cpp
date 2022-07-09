@@ -68,9 +68,9 @@ m_height { height } {
         &memoryRequirements
     );
 
-    const int32_t memoryTypeIndex { findMemoryIndex(memoryRequirements.memoryTypeBits, memoryPropertyFlags) };
+    std::optional<uint32_t> memoryTypeIndex{ m_device->findMemoryIndex(memoryRequirements.memoryTypeBits, memoryPropertyFlags) };
     
-    if (memoryTypeIndex == -1) {
+    if (!memoryTypeIndex.has_value()) {
         core::Logger::error("Required memory type not found, image not valid!");
     }
 
@@ -78,7 +78,7 @@ m_height { height } {
         VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, // sType
         nullptr, // pNext
         memoryRequirements.size, // allocationSize
-        memoryTypeIndex // memoryTypeIndex
+        memoryTypeIndex.value() // memoryTypeIndex
     };
 
     VULKAN_CHECK(
@@ -167,29 +167,6 @@ auto Image::createImageView(
             &m_imageView
         )
     );
-}
-
-auto Image::findMemoryIndex(
-    const uint32_t typeFilter,
-    const uint32_t propertyFlags
-) -> int32_t {
-    VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
-    vkGetPhysicalDeviceMemoryProperties(
-        m_device->getPhysicalDevice(),
-        &physicalDeviceMemoryProperties
-    );
-
-    for (uint32_t i { 0u }; i < physicalDeviceMemoryProperties.memoryTypeCount; i++) {
-        if (
-            (typeFilter & (1u << i)) &&
-            ((physicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags)
-        ) {
-            return static_cast<int32_t>(i);
-        }
-    }
-
-    core::Logger::warn("Unable to find suitable memory type!");
-    return -1;
 }
 
 } // namespace vulkan
