@@ -29,6 +29,8 @@ set(SRC
     src/math/MathVector3.hpp
     src/math/MathVector4.cpp
     src/math/MathVector4.hpp
+    src/math/MathVertex3D.cpp
+    src/math/MathVertex3D.hpp
     src/platform/Platform.hpp
     src/platform/PlatformTypes.hpp
     src/platform/PlatformWin32.cpp

@@ -77,10 +77,10 @@ m_handle { VK_NULL_HANDLE } {
         VK_COMPARE_OP_LESS,                                         // depthCompareOp
         VK_FALSE,                                                   // depthBoundsTestEnable
         VK_FALSE,                                                   // stencilTestEnable
-        //VkStencilOpState                          front;
-        //VkStencilOpState                          back;
-        //float                                     minDepthBounds;
-        //float                                     maxDepthBounds;
+        { },                                                        // front
+        { },                                                        // back
+        0.0f,                                                       // minDepthBounds
+        0.0f                                                        // maxDepthBounds
     };
 
     const VkColorComponentFlags colorComponentFlags {
@@ -157,8 +157,8 @@ m_handle { VK_NULL_HANDLE } {
         0u,                                                 // flags
         static_cast<uint32_t>(descriptorSetLayouts.size()), // setLayoutCount
         descriptorSetLayouts.data(),                        // pSetLayouts
-        //uint32_t                        pushConstantRangeCount;
-        //const VkPushConstantRange* pPushConstantRanges;
+        0u,                                                 // pushConstantRangeCount
+        nullptr                                             // pPushConstantRanges
     };
 
     VULKAN_CHECK(

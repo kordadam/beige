@@ -7,8 +7,8 @@ namespace math {
 
 class Vertex3D {
 public:
-    Vertex3D() = default;
-    ~Vertex3D() = default;
+    Vertex3D(const float x, const float y, const float z);
+    ~Vertex3D();
 
     Vector3 m_position;
 };

@@ -23,7 +23,7 @@ public:
     );
     ~ShaderObject();
 
-    auto use() -> void;
+    auto use(const VkCommandBuffer& commandBuffer) -> void;
 
 private:
     struct Stage {

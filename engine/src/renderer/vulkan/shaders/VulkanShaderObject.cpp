@@ -76,29 +76,29 @@ m_pipeline { } {
     };
 
     const std::array<uint32_t, attributeCount> sizes {
-        sizeof(math::Vector3)
+        sizeof(math::Vertex3D)
     };
 
-    std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions;
+    std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions { attributeCount };
 
     for (uint32_t i { 0u }; i < attributeCount; i++) {
         const VkVertexInputAttributeDescription vertexInputAttributeDescription {
-            i, // location
-            0u, // binding
+            i,             // location
+            0u,            // binding
             formats.at(i), // format
-            offset // offset
+            offset         // offset
         };
 
-        vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
+        vertexInputAttributeDescriptions.at(i) = vertexInputAttributeDescription;
         offset += sizes.at(i);
     }
 
     // TODO: Descriptor set layouts
     const std::vector<VkDescriptorSetLayout> descriptorSetLayout;
 
-    std::vector<VkPipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos;
+    std::vector<VkPipelineShaderStageCreateInfo> pipelineShaderStageCreateInfos { m_stageCount };
     for (uint32_t i { 0u }; i < m_stageCount; i++) {
-        pipelineShaderStageCreateInfos.push_back(m_stages.at(i).pipelineShaderStageCreateInfo);
+        pipelineShaderStageCreateInfos.at(i) = m_stages.at(i).pipelineShaderStageCreateInfo;
     }
 
     m_pipeline = std::make_shared<Pipeline>(
@@ -132,8 +132,8 @@ ShaderObject::~ShaderObject() {
     );
 }
 
-auto ShaderObject::use() -> void {
-
+auto ShaderObject::use(const VkCommandBuffer& commandBuffer) -> void {
+    m_pipeline->bind(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS);
 }
 
 auto ShaderObject::createShaderModule(
@@ -171,6 +171,8 @@ auto ShaderObject::createShaderModule(
 
     stage.shaderModuleCreateInfo.codeSize = size;
     stage.shaderModuleCreateInfo.pCode = (uint32_t*)(buffer.data());
+
+    file.close();
 
     VULKAN_CHECK(
         vkCreateShaderModule(

@@ -269,18 +269,19 @@ m_geometryIndexOffset { 0u } {
     );
 
     // Create fence in a signal state, idicating that the first frame has already been rendered
-    m_inFlightFences.resize(
-        maxFramesInFlight,
-        std::make_shared<Fence>(m_allocationCallbacks, m_device, true)
+    m_inFlightFences.resize(maxFramesInFlight);
+    std::for_each(
+        m_inFlightFences.begin(),
+        m_inFlightFences.end(),
+        [&](std::shared_ptr<Fence>& fence) {
+            fence = std::make_shared<Fence>(m_allocationCallbacks, m_device, true);
+        }
     );
 
     // In-flight images should not yet exist at this point, so clear the list
     // These are stored in pointers because the initial state should be 0, and will be 0 when not in use
     // Actual fences are not owned by this list
-    m_imagesInFlight.resize(
-        static_cast<uint32_t>(m_swapchain->getImages().size()),
-        nullptr
-    );
+    m_imagesInFlight.resize(static_cast<uint32_t>(m_swapchain->getImages().size()), nullptr);
 
     m_shaderObject = std::make_shared<ShaderObject>(
         m_allocationCallbacks,
@@ -291,6 +292,39 @@ m_geometryIndexOffset { 0u } {
     );
 
     createBuffers();
+
+    // TODO: Temporary test code
+    std::array<math::Vertex3D, 4u> verts {
+        math::Vertex3D { 0.0f, -0.5f, 0.0f },
+        math::Vertex3D { 0.5f, 0.5f, 0.0f },
+        math::Vertex3D { 0.0f, 0.5f, 0.0f },
+        math::Vertex3D { 0.5f, -0.5f, 0.0f }
+    };
+
+    std::array<uint32_t, 6u> indices {
+        0u, 1u, 2u, 0u, 3u, 1u
+    };
+
+    uploadDataRange(
+        m_device->getGraphicsCommandPool(),
+        VK_NULL_HANDLE,
+        m_device->getGraphicsQueue(),
+        m_objectVertexBuffer->getHandle(),
+        0u,
+        sizeof(math::Vertex3D) * verts.size(),
+        verts.data()
+    );
+
+    uploadDataRange(
+        m_device->getGraphicsCommandPool(),
+        VK_NULL_HANDLE,
+        m_device->getGraphicsQueue(),
+        m_objectIndexBuffer->getHandle(),
+        0u,
+        sizeof(uint32_t) * indices.size(),
+        indices.data()
+    );
+    // TODO: End temporary test code
 
     core::Logger::info("Vulkan renderer initialized successfully!");
 }
@@ -449,7 +483,7 @@ auto VulkanBackend::beginFrame(const float deltaTime) -> bool {
             m_framebufferHeight,
             UINT64_MAX,
             m_imageAvailableSemaphores.at(currentFrame),
-            0
+            VK_NULL_HANDLE
         )
     };
 
@@ -490,10 +524,10 @@ auto VulkanBackend::beginFrame(const float deltaTime) -> bool {
         scissorExtent  // extent
     };
 
-    const VkCommandBuffer commandBuffer { graphicsCommandBuffer->getCommandBuffer() };
+    const VkCommandBuffer graphicsCommandBufferHandle { graphicsCommandBuffer->getHandle() };
 
-    vkCmdSetViewport(commandBuffer, 0u, 1u, &viewport);
-    vkCmdSetScissor(commandBuffer, 0u, 1u, &scissor);
+    vkCmdSetViewport(graphicsCommandBufferHandle, 0u, 1u, &viewport);
+    vkCmdSetScissor(graphicsCommandBufferHandle, 0u, 1u, &scissor);
 
     m_mainRenderPass->setW(static_cast<float>(m_framebufferWidth));
     m_mainRenderPass->setH(static_cast<float>(m_framebufferHeight));
@@ -502,6 +536,15 @@ auto VulkanBackend::beginFrame(const float deltaTime) -> bool {
         graphicsCommandBuffer,
         m_framebuffers.at(m_imageIndex)->getFramebuffer()
     );
+
+    // TODO: Temporary test code
+    m_shaderObject->use(graphicsCommandBufferHandle);
+
+    const std::array<VkDeviceSize, 1u> offsets { 0u };
+    vkCmdBindVertexBuffers(graphicsCommandBufferHandle, 0u, 1u, &m_objectVertexBuffer->getHandle(), offsets.data());
+    vkCmdBindIndexBuffer(graphicsCommandBufferHandle, m_objectIndexBuffer->getHandle(), 0u, VK_INDEX_TYPE_UINT32);
+    vkCmdDrawIndexed(graphicsCommandBufferHandle, 6u, 1u, 0u, 0u, 0u);
+    // TODO: End temporary test code
 
     return true;
 }
@@ -544,7 +587,7 @@ auto VulkanBackend::endFrame(const float deltaTime) -> bool {
         &m_imageAvailableSemaphores.at(currentFrame), // pWaitSemaphores
         &pipelineStageFlags,                          // pWaitDstStageMask
         1u,                                           // commandBufferCount
-        &graphicsCommandBuffer->getCommandBuffer(),   // pCommandBuffers
+        &graphicsCommandBuffer->getHandle(),          // pCommandBuffers
         1u,                                           // signalSemaphoreCount
         &currentQueueCompleteSemaphore                // pSignalSemaphores
     };
@@ -590,6 +633,8 @@ auto VulkanBackend::regenerateFramebuffers() -> void {
     const std::vector<VkImageView> swapchainImageViews { m_swapchain->getImageViews() };
     const std::shared_ptr<Image> swapchainDepthAttachment { m_swapchain->getDepthAttachment() };
 
+    m_framebuffers.clear();
+
     std::for_each(
         swapchainImageViews.begin(),
         swapchainImageViews.end(),
@@ -617,19 +662,20 @@ auto VulkanBackend::regenerateFramebuffers() -> void {
 auto VulkanBackend::createCommandBuffers() -> void {
     const VkCommandPool graphicsCommandPool { m_device->getGraphicsCommandPool() };
 
+    const uint32_t imagesCount { static_cast<uint32_t>(m_swapchain->getImages().size()) };
+
     if (m_graphicsCommandBuffers.empty()) {
-        m_graphicsCommandBuffers.resize(
-            m_swapchain->getImages().size(),
-            std::make_shared<CommandBuffer>(m_device)
-        );
+        m_graphicsCommandBuffers.resize(imagesCount);
     }
 
-    for (const std::shared_ptr<CommandBuffer> graphicsCommandBuffer : m_graphicsCommandBuffers) {
-        if (graphicsCommandBuffer->getCommandBuffer() != 0) {
-            graphicsCommandBuffer->free(graphicsCommandPool);
+    for (uint32_t i { 0u }; i < imagesCount; i++) {
+        if (m_graphicsCommandBuffers.at(i) != nullptr && m_graphicsCommandBuffers.at(i)->getHandle() != VK_NULL_HANDLE) {
+            m_graphicsCommandBuffers.at(i)->free(graphicsCommandPool);
         }
 
-        graphicsCommandBuffer->allocate(graphicsCommandPool, true);
+        m_graphicsCommandBuffers.at(i).reset();
+        m_graphicsCommandBuffers.at(i) = std::make_shared<CommandBuffer>(m_device);
+        m_graphicsCommandBuffers.at(i)->allocate(graphicsCommandPool, true);
     }
 
     core::Logger::info("Vulkan graphics command buffers created!");
@@ -683,9 +729,6 @@ auto VulkanBackend::recreateSwapchain() -> bool {
         }
     );
 
-    // Framebuffers
-    m_framebuffers.clear();
-
     m_mainRenderPass->setX(0.0f);
     m_mainRenderPass->setY(0.0f);
     m_mainRenderPass->setW(static_cast<float>(m_framebufferWidth));
@@ -736,6 +779,37 @@ auto VulkanBackend::createBuffers() -> void {
         true
     );
     m_geometryIndexOffset = 0u;
+}
+
+auto VulkanBackend::uploadDataRange(
+    const VkCommandPool& commandPool,
+    const VkFence& fence,
+    const VkQueue& queue,
+    const VkBuffer& buffer,
+    const uint64_t offset,
+    const uint64_t size,
+    void* data
+) -> void {
+    const VkMemoryPropertyFlags memoryPropertyFlags {
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    };
+
+    const VkBufferUsageFlags bufferUsageFlags {
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT
+    };
+
+    Buffer staging {
+        m_allocationCallbacks,
+        m_device,
+        size,
+        bufferUsageFlags,
+        memoryPropertyFlags,
+        true
+    };
+
+    staging.loadData(0u, size, 0u, data);
+    staging.copyTo(commandPool, fence, queue, staging.getHandle(), 0u, buffer, offset, size);
 }
 
 } // namespace vulkan

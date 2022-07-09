@@ -201,14 +201,14 @@ auto Platform::createVulkanSurface(
     const VkInstance& instance,
     const VkAllocationCallbacks* allocationCallbacks
 ) -> std::optional<VkSurfaceKHR> {
-    std::optional<VkSurfaceKHR> surfaceOptional { std::nullopt };
+    std::optional<VkSurfaceKHR> surface { std::nullopt };
 
-    VkWin32SurfaceCreateInfoKHR surfaceCreateInfo {
+    const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo {
         VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, // sType
-        nullptr, // pNext
-        0u, // flags
-        m_state.hInstance, // hinstance
-        m_state.hnwd // hwnd
+        nullptr,                                         // pNext
+        0u,                                              // flags
+        m_state.hInstance,                               // hinstance
+        m_state.hnwd                                     // hwnd
     };
 
     const VkResult result {
@@ -221,12 +221,12 @@ auto Platform::createVulkanSurface(
     };
 
     if (result == VK_SUCCESS) {
-        surfaceOptional = m_state.surface;
+        surface = m_state.surface;
     } else {
         core::Logger::fatal("Failed to create Vulkan surface!");
     }
 
-    return surfaceOptional;
+    return surface;
 }
 
 LRESULT CALLBACK processMessageCallback(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam) {

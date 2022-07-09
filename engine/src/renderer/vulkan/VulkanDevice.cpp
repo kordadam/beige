@@ -32,7 +32,7 @@ m_graphicsCommandPool { 0 },
 m_physicalDeviceProperties { 0 },
 m_physicalDeviceFeatures { 0 },
 m_physicalDeviceMemoryProperties { 0 },
-m_depthFormat { } {
+m_depthFormat { VK_FORMAT_UNDEFINED } {
     if (!selectPhysicalDevice(instance)) {
         throw std::exception("Failed to create device!");
     }

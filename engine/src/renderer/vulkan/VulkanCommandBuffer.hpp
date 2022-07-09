@@ -27,7 +27,7 @@ public:
 
     ~CommandBuffer();
 
-    auto getCommandBuffer() const -> const VkCommandBuffer&;
+    auto getHandle() const -> const VkCommandBuffer&;
     auto setState(const State state) -> void;
 
     auto allocate(
@@ -59,7 +59,7 @@ public:
 private:
     std::shared_ptr<Device> m_device;
 
-    VkCommandBuffer m_commandBuffer;
+    VkCommandBuffer m_handle;
     State m_state;
 };
 

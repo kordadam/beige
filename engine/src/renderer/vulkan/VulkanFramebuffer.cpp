@@ -17,19 +17,19 @@ Framebuffer::Framebuffer(
 m_allocationCallbacks { allocationCallbacks },
 m_device { device },
 m_renderPass { renderPass },
-m_framebuffer { 0 },
+m_framebuffer { VK_NULL_HANDLE },
 m_imageViews { imageViews }
 {
     const VkFramebufferCreateInfo framebufferCreateInfo {
-        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO, // sType
-        nullptr, // pNext
-        0u, // flags
-        m_renderPass->getRenderPass(), // renderPass
+        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,  // sType
+        nullptr,                                    // pNext
+        0u,                                         // flags
+        m_renderPass->getRenderPass(),              // renderPass
         static_cast<uint32_t>(m_imageViews.size()), // attachmentCount
-        m_imageViews.data(), // pAttachments
-        width, // width
-        height, // height
-        1u // layers
+        m_imageViews.data(),                        // pAttachments
+        width,                                      // width
+        height,                                     // height
+        1u                                          // layers
     };
 
     VULKAN_CHECK(

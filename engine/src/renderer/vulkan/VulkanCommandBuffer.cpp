@@ -10,7 +10,7 @@ CommandBuffer::CommandBuffer(
     std::shared_ptr<Device> device
 ) :
 m_device { device },
-m_commandBuffer { 0 },
+m_handle { VK_NULL_HANDLE },
 m_state { State::Ready } {
 
 }
@@ -19,8 +19,8 @@ CommandBuffer::~CommandBuffer() {
 
 }
 
-auto CommandBuffer::getCommandBuffer() const -> const VkCommandBuffer& {
-    return m_commandBuffer;
+auto CommandBuffer::getHandle() const -> const VkCommandBuffer& {
+    return m_handle;
 }
 
 auto CommandBuffer::setState(const State state) -> void {
@@ -41,10 +41,10 @@ auto CommandBuffer::allocate(
 
     const VkCommandBufferAllocateInfo commandBufferAllocateInfo {
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, // sType
-        nullptr, // pNext
-        commandPool, // commandPool
-        commandBufferLevel, // level
-        1u //commandBufferCount;
+        nullptr,                                        // pNext
+        commandPool,                                    // commandPool
+        commandBufferLevel,                             // level
+        1u                                              //commandBufferCount
     };
 
     m_state = State::NotAllocated;
@@ -53,7 +53,7 @@ auto CommandBuffer::allocate(
         vkAllocateCommandBuffers(
             logicalDevice,
             &commandBufferAllocateInfo,
-            &m_commandBuffer
+            &m_handle
         )
     );
 
@@ -67,10 +67,10 @@ auto CommandBuffer::free(const VkCommandPool& commandPool) -> void {
         logicalDevice,
         commandPool,
         1u,
-        &m_commandBuffer
+        &m_handle
     );
 
-    m_commandBuffer = 0;
+    m_handle = VK_NULL_HANDLE;
     m_state = State::NotAllocated;
 }
 
@@ -87,14 +87,14 @@ auto CommandBuffer::begin(
 
     const VkCommandBufferBeginInfo commandBufferBeginInfo {
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, // sType
-        nullptr, // pNext
-        commandBufferUsageFlags, // flags
-        nullptr // pInheritanceInfo
+        nullptr,                                     // pNext
+        commandBufferUsageFlags,                     // flags
+        nullptr                                      // pInheritanceInfo
     };
 
     VULKAN_CHECK(
         vkBeginCommandBuffer(
-            m_commandBuffer,
+            m_handle,
             &commandBufferBeginInfo
         )
     );
@@ -105,7 +105,7 @@ auto CommandBuffer::begin(
 auto CommandBuffer::end() -> void {
     VULKAN_CHECK(
         vkEndCommandBuffer(
-            m_commandBuffer
+            m_handle
         )
     );
 
@@ -137,14 +137,14 @@ auto CommandBuffer::endSingleUse(
     // Submit the queue
     const VkSubmitInfo submitInfo {
         VK_STRUCTURE_TYPE_SUBMIT_INFO, // sType
-        nullptr, // pNext
-        0u, // waitSemaphoreCount
-        nullptr, // pWaitSemaphores
-        nullptr, // pWaitDstStageMask
-        1u, // commandBufferCount
-        &m_commandBuffer, // pCommandBuffers
-        0u, // signalSemaphoreCount
-        nullptr // pSignalSemaphores
+        nullptr,                       // pNext
+        0u,                            // waitSemaphoreCount
+        nullptr,                       // pWaitSemaphores
+        nullptr,                       // pWaitDstStageMask
+        1u,                            // commandBufferCount
+        &m_handle,                     // pCommandBuffers
+        0u,                            // signalSemaphoreCount
+        nullptr                        // pSignalSemaphores
     };
 
     VULKAN_CHECK(

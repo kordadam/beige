@@ -177,7 +177,7 @@ auto RenderPass::begin(
         renderAreaExtent
     };
 
-    std::array<VkClearValue, 2u> clearValues;
+    std::array<VkClearValue, 2u> clearValues { 0 };
     clearValues.at(0).color.float32[0] = m_r;
     clearValues.at(0).color.float32[1] = m_g;
     clearValues.at(0).color.float32[2] = m_b;
@@ -196,7 +196,7 @@ auto RenderPass::begin(
     };
 
     vkCmdBeginRenderPass(
-        commandBuffer->getCommandBuffer(),
+        commandBuffer->getHandle(),
         &renderPassBeginInfo,
         VK_SUBPASS_CONTENTS_INLINE
     );
@@ -205,7 +205,7 @@ auto RenderPass::begin(
 }
 
 auto RenderPass::end(std::shared_ptr<CommandBuffer> commandBuffer) -> void {
-    vkCmdEndRenderPass(commandBuffer->getCommandBuffer());
+    vkCmdEndRenderPass(commandBuffer->getHandle());
     commandBuffer->setState(CommandBuffer::State::Recording);
 }
 

@@ -99,6 +99,10 @@ Buffer::~Buffer() {
     }
 }
 
+auto Buffer::getHandle() const -> const VkBuffer& {
+    return m_handle;
+}
+
 auto Buffer::resize(
     const uint64_t newSize,
     const VkQueue& queue,
@@ -256,7 +260,7 @@ auto Buffer::copyTo(
         size          // size
     };
 
-    vkCmdCopyBuffer(commandBuffer.getCommandBuffer(), source, dest, 1u, &copyRegion);
+    vkCmdCopyBuffer(commandBuffer.getHandle(), source, dest, 1u, &copyRegion);
 
     commandBuffer.endSingleUse(commandPool, queue);
 }

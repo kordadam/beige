@@ -72,6 +72,15 @@ private:
     auto createCommandBuffers() -> void;
     auto recreateSwapchain() -> bool;
     auto createBuffers() -> void;
+    auto uploadDataRange(
+        const VkCommandPool& commandPool,
+        const VkFence& fence,
+        const VkQueue& queue,
+        const VkBuffer& buffer,
+        const uint64_t offset,
+        const uint64_t size,
+        void* data
+    ) -> void;
 };
 
 } // namespace vulkan

@@ -22,6 +22,8 @@ public:
 
     ~Buffer();
 
+    auto getHandle() const -> const VkBuffer&;
+
     auto resize(
         const uint64_t newSize,
         const VkQueue& queue,
