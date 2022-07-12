@@ -500,12 +500,12 @@ auto VulkanBackend::beginFrame(const float deltaTime) -> bool {
 
     // Dynamic state
     const VkViewport viewport {
-        0.0f,                                    // x
-        static_cast<float>(m_framebufferHeight), // y
-        static_cast<float>(m_framebufferWidth),  // width
-        static_cast<float>(m_framebufferHeight), // height
-        0.0f,                                    // minDepth
-        1.0f                                     // maxDepth
+        0.0f,                                     // x
+        static_cast<float>(m_framebufferHeight),  // y
+        static_cast<float>(m_framebufferWidth),   // width
+        -static_cast<float>(m_framebufferHeight), // height
+        0.0f,                                     // minDepth
+        1.0f                                      // maxDepth
     };
 
     // Scissor
@@ -704,6 +704,7 @@ auto VulkanBackend::recreateSwapchain() -> bool {
         m_imagesInFlight.begin(),
         m_imagesInFlight.end(),
         [](std::shared_ptr<Fence> fence) -> void {
+            fence.reset();
             fence = nullptr;
         }
     );

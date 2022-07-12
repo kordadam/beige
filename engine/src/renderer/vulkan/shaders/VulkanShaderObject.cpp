@@ -44,12 +44,12 @@ m_pipeline { } {
     // TODO: Descriptors
 
     const VkViewport viewport {
-        0.0f,                                  // x
-        static_cast<float>(framebufferHeight), // y
-        static_cast<float>(framebufferWidth),  // width
-        static_cast<float>(framebufferHeight), // height
-        0.0f,                                  // minDepth
-        1.0f                                   // maxDepth
+        0.0f,                                   // x
+        static_cast<float>(framebufferHeight),  // y
+        static_cast<float>(framebufferWidth),   // width
+        -static_cast<float>(framebufferHeight), // height
+        0.0f,                                   // minDepth
+        1.0f                                    // maxDepth
     };
 
     const VkOffset2D scissorOffset {
@@ -170,7 +170,7 @@ auto ShaderObject::createShaderModule(
     }
 
     stage.shaderModuleCreateInfo.codeSize = size;
-    stage.shaderModuleCreateInfo.pCode = (uint32_t*)(buffer.data());
+    stage.shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(buffer.data());
 
     file.close();
 
