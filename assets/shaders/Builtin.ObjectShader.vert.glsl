@@ -8,6 +8,11 @@ layout(set = 0, binding = 0) uniform GlobalUniformObject {
     mat4 view;
 } globalUniformObject;
 
+layout(push_constant) uniform PushConstants {
+    // Only guaranteed a total of 128 bytes.
+    mat4 model; // 64 bytes
+} pushConstants;
+
 void main() {
-    gl_Position = globalUniformObject.projection * globalUniformObject.view * vec4(inPosition, 1.0);
+    gl_Position = globalUniformObject.projection * globalUniformObject.view * pushConstants.model * vec4(inPosition, 1.0);
 }

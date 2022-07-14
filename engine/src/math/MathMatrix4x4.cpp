@@ -52,15 +52,15 @@ Matrix4x4::Matrix4x4(const Quaternion& q, const Vector3& center) {
     data.at(6u) = 2.0f * ((q.y * q.z) + (q.x * q.w));
     data.at(7u) = center.y - center.x * data.at(4u) - center.y * data.at(5u) - center.z * data.at(6u);
 
-    data.at(8u) = 2.0f * (q.x * q.z) + (q.y * q.w);
-    data.at(9u) = 2.0f * (q.y * q.z) - (q.x * q.w);
+    data.at(8u) = 2.0f * ((q.x * q.z) + (q.y * q.w));
+    data.at(9u) = 2.0f * ((q.y * q.z) - (q.x * q.w));
     data.at(10u) = -(q.x * q.x) - (q.y * q.y) + (q.z * q.z) + (q.w * q.w);
     data.at(11u) = center.z - center.x * data.at(8u) - center.y * data.at(9u) - center.z * data.at(10u);
 
     data.at(12u) = 0.0f;
     data.at(13u) = 0.0f;
     data.at(14u) = 0.0f;
-    data.at(15u) = 0.0f;
+    data.at(15u) = 1.0f;
 }
 
 auto Matrix4x4::operator*(const Matrix4x4& a) -> Matrix4x4 {

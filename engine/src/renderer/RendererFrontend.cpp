@@ -44,13 +44,21 @@ auto Frontend::drawFrame(const Packet& packet) -> bool {
                 1000.0f
             )
         };
-
-        const math::Matrix4x4 view {
-            math::Matrix4x4::translation(math::Vector3(0.0f, 0.0f, -30.0f))
+        static float z { 0.0f };
+        z += 0.005f;
+        math::Matrix4x4 view {
+            math::Matrix4x4::translation(math::Vector3(0.0f, 0.0f, z))
         };
-
+        view.inverse();
+        static float angle { 0.01f };
+        angle += 0.001f;
+        const math::Quaternion rotation {
+            math::Vector3::forward(),
+            angle,
+            false
+        };
         const math::Matrix4x4 model {
-            math::Matrix4x4::translation(math::Vector3(0.0f, 0.0f, 0.0f))
+            rotation, math::Vector3::zero()
         };
 
         m_backend->updateGlobalState(

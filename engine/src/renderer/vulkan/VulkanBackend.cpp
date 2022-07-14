@@ -559,20 +559,6 @@ auto Backend::updateGlobalState(
     // TODO: Other uniform object properties.
 
     m_shaderObject->updateGlobalState(m_imageIndex, graphicsCommandBufferHandle);
-
-    // TODO: Temporary test code
-    m_shaderObject->use(graphicsCommandBufferHandle);
-
-    // Bind vertex buffer and offset.
-    const std::array<VkDeviceSize, 1u> offsets { 0u };
-    vkCmdBindVertexBuffers(graphicsCommandBufferHandle, 0u, 1u, &m_objectVertexBuffer->getHandle(), offsets.data());
-
-    // Bind index buffer and offset.
-    vkCmdBindIndexBuffer(graphicsCommandBufferHandle, m_objectIndexBuffer->getHandle(), 0u, VK_INDEX_TYPE_UINT32);
-
-    // Issue the draw.
-    vkCmdDrawIndexed(graphicsCommandBufferHandle, 6u, 1u, 0u, 0u, 0u);
-    // TODO: End temporary test code
 }
 
 auto Backend::endFrame(const float deltaTime) -> bool {
@@ -657,6 +643,22 @@ auto Backend::updateObject(
         m_graphicsCommandBuffers.at(m_imageIndex)->getHandle(),
         model
     );
+
+    // TODO: Temporary test code
+    const VkCommandBuffer graphicsCommandBufferHandle { m_graphicsCommandBuffers.at(m_imageIndex)->getHandle() };
+
+    m_shaderObject->use(graphicsCommandBufferHandle);
+
+    // Bind vertex buffer and offset.
+    const std::array<VkDeviceSize, 1u> offsets{ 0u };
+    vkCmdBindVertexBuffers(graphicsCommandBufferHandle, 0u, 1u, &m_objectVertexBuffer->getHandle(), offsets.data());
+
+    // Bind index buffer and offset.
+    vkCmdBindIndexBuffer(graphicsCommandBufferHandle, m_objectIndexBuffer->getHandle(), 0u, VK_INDEX_TYPE_UINT32);
+
+    // Issue the draw.
+    vkCmdDrawIndexed(graphicsCommandBufferHandle, 6u, 1u, 0u, 0u, 0u);
+    // TODO: End temporary test code
 }
 
 auto Backend::regenerateFramebuffers() -> void {
