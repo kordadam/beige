@@ -28,6 +28,13 @@ public:
 
     auto onResized(const uint16_t width, const uint16_t height) -> void override;
     auto beginFrame(const float deltaTime) -> bool override;
+    auto updateGlobalState(
+        const math::Matrix4x4& projection,
+        const math::Matrix4x4& view,
+        const math::Vector3& viewPosition,
+        const math::Vector4& ambientColor,
+        const int32_t mode
+    ) -> void override;
     auto endFrame(const float deltaTime) -> bool override;
     auto drawFrame(const Packet& packet) -> bool override;
 

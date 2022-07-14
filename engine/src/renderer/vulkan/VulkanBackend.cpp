@@ -287,18 +287,21 @@ m_geometryIndexOffset { 0u } {
         m_allocationCallbacks,
         m_device,
         m_mainRenderPass,
+        m_swapchain,
         m_framebufferWidth,
         m_framebufferHeight
     );
 
     createBuffers();
 
+    const float f { 10.0f };
+
     // TODO: Temporary test code
     std::array<math::Vertex3D, 4u> verts {
-        math::Vertex3D { 0.0f, -0.5f, 0.0f },
-        math::Vertex3D { 0.5f, 0.5f, 0.0f },
-        math::Vertex3D { 0.0f, 0.5f, 0.0f },
-        math::Vertex3D { 0.5f, -0.5f, 0.0f }
+        math::Vertex3D { -0.5f * f, -0.5f * f, 0.0f },
+        math::Vertex3D { 0.5f * f, 0.5f * f, 0.0f },
+        math::Vertex3D { -0.5f * f, 0.5f * f, 0.0f },
+        math::Vertex3D { 0.5f * f, -0.5f * f, 0.0f }
     };
 
     std::array<uint32_t, 6u> indices {
@@ -537,16 +540,39 @@ auto VulkanBackend::beginFrame(const float deltaTime) -> bool {
         m_framebuffers.at(m_imageIndex)->getFramebuffer()
     );
 
+    return true;
+}
+
+auto VulkanBackend::updateGlobalState(
+    const math::Matrix4x4& projection,
+    const math::Matrix4x4& view,
+    const math::Vector3& viewPosition,
+    const math::Vector4& ambientColor,
+    const int32_t mode
+) -> void {
+    const VkCommandBuffer graphicsCommandBufferHandle { m_graphicsCommandBuffers.at(m_imageIndex)->getHandle() };
+
+    m_shaderObject->use(graphicsCommandBufferHandle);
+    m_shaderObject->setProjection(projection);
+    m_shaderObject->setView(view);
+
+    // TODO: Other uniform object properties.
+
+    m_shaderObject->updateGlobalState(m_imageIndex, graphicsCommandBufferHandle);
+
     // TODO: Temporary test code
     m_shaderObject->use(graphicsCommandBufferHandle);
 
+    // Bind vertex buffer and offset.
     const std::array<VkDeviceSize, 1u> offsets { 0u };
     vkCmdBindVertexBuffers(graphicsCommandBufferHandle, 0u, 1u, &m_objectVertexBuffer->getHandle(), offsets.data());
+
+    // Bind index buffer and offset.
     vkCmdBindIndexBuffer(graphicsCommandBufferHandle, m_objectIndexBuffer->getHandle(), 0u, VK_INDEX_TYPE_UINT32);
+
+    // Issue the draw.
     vkCmdDrawIndexed(graphicsCommandBufferHandle, 6u, 1u, 0u, 0u, 0u);
     // TODO: End temporary test code
-
-    return true;
 }
 
 auto VulkanBackend::endFrame(const float deltaTime) -> bool {

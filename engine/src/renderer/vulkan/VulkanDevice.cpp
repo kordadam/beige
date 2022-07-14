@@ -42,37 +42,37 @@ m_depthFormat { VK_FORMAT_UNDEFINED } {
 
     std::vector<VkDeviceQueueCreateInfo> deviceQueueCreateInfos;
 
-    std::array<float, 1u> queuePriorities { 1.0f };
-    VkDeviceQueueCreateInfo graphicsDeviceQueueCreateInfo {
-        VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, // sType
-        nullptr, // pNext
-        0u, // flags
-        m_graphicsQueueIndex.value(), // queueFamilyIndex
+    const std::array<float, 1u> queuePriorities { 1.0f };
+    const VkDeviceQueueCreateInfo graphicsDeviceQueueCreateInfo {
+        VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,    // sType
+        nullptr,                                       // pNext
+        0u,                                            // flags
+        m_graphicsQueueIndex.value(),                  // queueFamilyIndex
         static_cast<uint32_t>(queuePriorities.size()), // queueCount
-        queuePriorities.data() // pQueuePriorities
+        queuePriorities.data()                         // pQueuePriorities
     };
     deviceQueueCreateInfos.push_back(graphicsDeviceQueueCreateInfo);
 
     if (m_graphicsQueueIndex.value() != m_presentQueueIndex.value()) {
-        VkDeviceQueueCreateInfo presentDeviceQueueCreateInfo {
-            VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, // sType
-            nullptr, // pNext
-            0u, // flags
-            m_presentQueueIndex.value(), // queueFamilyIndex
+        const VkDeviceQueueCreateInfo presentDeviceQueueCreateInfo {
+            VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,    // sType
+            nullptr,                                       // pNext
+            0u,                                            // flags
+            m_presentQueueIndex.value(),                   // queueFamilyIndex
             static_cast<uint32_t>(queuePriorities.size()), // queueCount
-            queuePriorities.data() // pQueuePriorities
+            queuePriorities.data()                         // pQueuePriorities
         };
         deviceQueueCreateInfos.push_back(presentDeviceQueueCreateInfo);
     }
 
     if (m_graphicsQueueIndex.value() != m_transferQueueIndex.value()) {
-        VkDeviceQueueCreateInfo transferDeviceQueueCreateInfo {
-            VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, // sType
-            nullptr, // pNext
-            0u, // flags
-            m_transferQueueIndex.value(), // queueFamilyIndex
+        const VkDeviceQueueCreateInfo transferDeviceQueueCreateInfo {
+            VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,    // sType
+            nullptr,                                       // pNext
+            0u,                                            // flags
+            m_transferQueueIndex.value(),                  // queueFamilyIndex
             static_cast<uint32_t>(queuePriorities.size()), // queueCount
-            queuePriorities.data() // pQueuePriorities
+            queuePriorities.data()                         // pQueuePriorities
         };
         deviceQueueCreateInfos.push_back(transferDeviceQueueCreateInfo);
     }
@@ -82,21 +82,21 @@ m_depthFormat { VK_FORMAT_UNDEFINED } {
     VkPhysicalDeviceFeatures deviceFeatures { VK_FALSE };
     deviceFeatures.samplerAnisotropy = VK_TRUE;
 
-    std::vector<const char*> extensionNames {
+    const std::vector<const char*> extensionNames {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
 
-    VkDeviceCreateInfo deviceCreateInfo {
-        VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, // sType
-        nullptr, // pNext
-        0u, // flags
+    const VkDeviceCreateInfo deviceCreateInfo {
+        VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,                 // sType
+        nullptr,                                              // pNext
+        0u,                                                   // flags
         static_cast<uint32_t>(deviceQueueCreateInfos.size()), // queueCreateInfoCount
-        deviceQueueCreateInfos.data(), // pQueueCreateInfos
-        0u, // enabledLayerCount
-        nullptr, // ppEnabledLayerNames
-        static_cast<uint32_t>(extensionNames.size()), // enabledExtensionCount
-        extensionNames.data(), // ppEnabledExtensionNames
-        &deviceFeatures // pEnabledFeatures
+        deviceQueueCreateInfos.data(),                        // pQueueCreateInfos
+        0u,                                                   // enabledLayerCount
+        nullptr,                                              // ppEnabledLayerNames
+        static_cast<uint32_t>(extensionNames.size()),         // enabledExtensionCount
+        extensionNames.data(),                                // ppEnabledExtensionNames
+        &deviceFeatures                                       // pEnabledFeatures
     };
 
     VULKAN_CHECK(
@@ -217,7 +217,7 @@ auto Device::querySwapchainSupport(
         )
     );
 
-    uint32_t formatCount{ 0u };
+    uint32_t formatCount { 0u };
     VULKAN_CHECK(
         vkGetPhysicalDeviceSurfaceFormatsKHR(
             physicalDevice,
@@ -239,7 +239,7 @@ auto Device::querySwapchainSupport(
         );
     }
 
-    uint32_t presentModeCount{ 0u };
+    uint32_t presentModeCount { 0u };
     VULKAN_CHECK(
         vkGetPhysicalDeviceSurfacePresentModesKHR(
             physicalDevice,

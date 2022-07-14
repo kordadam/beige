@@ -3,9 +3,11 @@
 
 layout(location = 0) in vec3 inPosition;
 
-layout(location = 0) out vec3 outPosition;
+layout(set = 0, binding = 0) uniform GlobalUniformObject {
+    mat4 projection;
+    mat4 view;
+} globalUniformObject;
 
 void main() {
-    gl_Position = vec4(inPosition, 1.0);
-    outPosition = inPosition;
+    gl_Position = globalUniformObject.projection * globalUniformObject.view * vec4(inPosition, 1.0);
 }

@@ -227,6 +227,10 @@ Pipeline::~Pipeline() {
     );
 }
 
+auto Pipeline::getPipelineLayout() const -> const VkPipelineLayout& {
+    return m_pipelineLayout;
+}
+
 auto Pipeline::bind(
     const VkCommandBuffer& commandBuffer,
     const VkPipelineBindPoint& pipelineBindPoint

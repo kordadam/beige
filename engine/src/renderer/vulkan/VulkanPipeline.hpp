@@ -23,6 +23,8 @@ public:
 
     ~Pipeline();
 
+    auto getPipelineLayout() const -> const VkPipelineLayout&;
+
     auto bind(
         const VkCommandBuffer& commandBuffer,
         const VkPipelineBindPoint& pipelineBindPoint

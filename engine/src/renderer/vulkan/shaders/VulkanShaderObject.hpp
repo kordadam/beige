@@ -2,6 +2,9 @@
 
 #include "../VulkanDevice.hpp"
 #include "../VulkanPipeline.hpp"
+#include "../VulkanBuffer.hpp"
+#include "../VulkanSwapchain.hpp"
+#include "../../RendererTypes.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -18,12 +21,21 @@ public:
         VkAllocationCallbacks* allocationCallbacks,
         std::shared_ptr<Device> device,
         std::shared_ptr<RenderPass> renderPass,
+        std::shared_ptr<Swapchain> swapchain,
         const uint32_t framebufferWidth,
         const uint32_t framebufferHeight
     );
     ~ShaderObject();
 
+    auto setProjection(const math::Matrix4x4& projection) -> void;
+    auto setView(const math::Matrix4x4& view) -> void;
+
     auto use(const VkCommandBuffer& commandBuffer) -> void;
+
+    auto updateGlobalState(
+        const uint32_t imageIndex,
+        const VkCommandBuffer& commandBuffer
+    ) -> void;
 
 private:
     struct Stage {
@@ -38,9 +50,23 @@ private:
     VkAllocationCallbacks* m_allocationCallbacks;
     std::shared_ptr<Device> m_device;
     std::shared_ptr<RenderPass> m_renderPass;
+    std::shared_ptr<Swapchain> m_swapchain;
 
     std::array<Stage, m_stageCount> m_stages;
-    std::shared_ptr<Pipeline> m_pipeline;
+
+    VkDescriptorPool m_globalDescriptorPool;
+    VkDescriptorSetLayout m_globalDescriptorSetLayout;
+
+    // One descriptor set per frame - max 3 for tripple-buffering.
+    std::array<VkDescriptorSet, 3u> m_globalDescriptorSets;
+
+    // Global uniform object.
+    GlobalUniformObject m_globalUniformObject;
+
+    // Global uniform buffer.
+    std::unique_ptr<Buffer> m_globalUniformBuffer;
+
+    std::unique_ptr<Pipeline> m_pipeline;
 
     auto createShaderModule(
         Stage& stage,
