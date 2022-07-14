@@ -15,16 +15,16 @@ namespace beige {
 namespace renderer {
 namespace vulkan {
 
-class VulkanBackend final : public IRendererBackend {
+class Backend final : public IBackend {
 public:
-    VulkanBackend(
+    Backend(
         const std::string& appName,
         const uint32_t width,
         const uint32_t height,
         std::shared_ptr<platform::Platform> platform
     );
 
-    ~VulkanBackend();
+    ~Backend();
 
     auto onResized(const uint16_t width, const uint16_t height) -> void override;
     auto beginFrame(const float deltaTime) -> bool override;
@@ -36,7 +36,9 @@ public:
         const int32_t mode
     ) -> void override;
     auto endFrame(const float deltaTime) -> bool override;
-    auto drawFrame(const Packet& packet) -> bool override;
+    auto updateObject(
+        const math::Matrix4x4& model
+    ) -> void override;
 
 private:
     std::shared_ptr<platform::Platform> m_platform;

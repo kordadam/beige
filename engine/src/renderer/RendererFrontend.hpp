@@ -9,21 +9,21 @@
 namespace beige {
 namespace renderer {
 
-class RendererFrontend final {
+class Frontend final {
 public:
-    RendererFrontend(
+    Frontend(
         const std::string& appName,
         const uint32_t width,
         const uint32_t height,
         std::shared_ptr<platform::Platform> platform
     );
-    ~RendererFrontend();
+    ~Frontend();
 
     auto onResized(const uint16_t width, const uint16_t height) -> void;
     auto drawFrame(const Packet& packet) -> bool;
 
 private:
-    std::unique_ptr<IRendererBackend> m_rendererBackend;
+    std::unique_ptr<IBackend> m_backend;
     uint64_t m_frameCount;
 
     auto beginFrame(const float deltaTime) -> bool;

@@ -34,7 +34,7 @@ private:
     std::shared_ptr<Input> m_input;
     std::shared_ptr<platform::Platform> m_platform;
     std::unique_ptr<Clock> m_clock;
-    std::unique_ptr<renderer::RendererFrontend> m_rendererFrontend;
+    std::unique_ptr<renderer::Frontend> m_rendererFrontend;
     std::unique_ptr<IGame> m_game;
 };
 

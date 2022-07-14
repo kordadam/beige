@@ -13,13 +13,13 @@ namespace beige {
 namespace renderer {
 namespace vulkan {
 
-VulkanBackend::VulkanBackend(
+Backend::Backend(
     const std::string& appName,
     const uint32_t width,
     const uint32_t height,
     std::shared_ptr<platform::Platform> platform
 ) :
-IRendererBackend { },
+IBackend { },
 m_platform { platform },
 m_framebufferWidth { width },
 m_framebufferHeight { height },
@@ -332,7 +332,7 @@ m_geometryIndexOffset { 0u } {
     core::Logger::info("Vulkan renderer initialized successfully!");
 }
 
-VulkanBackend::~VulkanBackend() {
+Backend::~Backend() {
     const VkDevice logicalDevice { m_device->getLogicalDevice() };
     const VkCommandPool graphicsCommandPool { m_device->getGraphicsCommandPool() };
 
@@ -423,7 +423,7 @@ VulkanBackend::~VulkanBackend() {
     vkDestroyInstance(m_instance, m_allocationCallbacks);
 }
 
-auto VulkanBackend::onResized(const uint16_t width, const uint16_t height) -> void {
+auto Backend::onResized(const uint16_t width, const uint16_t height) -> void {
     // Update the framebuffer generation, a counter which indicates when the framebuffer size has been updated
     m_framebufferWidth = width;
     m_framebufferHeight = height;
@@ -436,7 +436,7 @@ auto VulkanBackend::onResized(const uint16_t width, const uint16_t height) -> vo
     );
 }
 
-auto VulkanBackend::beginFrame(const float deltaTime) -> bool {
+auto Backend::beginFrame(const float deltaTime) -> bool {
     const VkDevice logicalDevice { m_device->getLogicalDevice() };
 
     // Check if recreating swapchain and boot out
@@ -543,7 +543,7 @@ auto VulkanBackend::beginFrame(const float deltaTime) -> bool {
     return true;
 }
 
-auto VulkanBackend::updateGlobalState(
+auto Backend::updateGlobalState(
     const math::Matrix4x4& projection,
     const math::Matrix4x4& view,
     const math::Vector3& viewPosition,
@@ -575,31 +575,30 @@ auto VulkanBackend::updateGlobalState(
     // TODO: End temporary test code
 }
 
-auto VulkanBackend::endFrame(const float deltaTime) -> bool {
+auto Backend::endFrame(const float deltaTime) -> bool {
     const std::shared_ptr<CommandBuffer> graphicsCommandBuffer { m_graphicsCommandBuffers.at(m_imageIndex) };
 
-    // End render pass
+    // End render pass.
     m_mainRenderPass->end(graphicsCommandBuffer);
 
     graphicsCommandBuffer->end();
 
-    // Make sure the previous frame is not using this image
+    // Make sure the previous frame is not using this image.
     const std::shared_ptr<Fence> fence { m_imagesInFlight.at(m_imageIndex) };
 
     if (fence != nullptr) {
         fence->wait(UINT64_MAX);
     }
 
-    // Mark the image fence as in-use by this frame
+    // Mark the image fence as in-use by this frame.
     const uint32_t currentFrame { m_swapchain->getCurrentFrame() };
     const std::shared_ptr<Fence> currentInFlightFence { m_inFlightFences.at(currentFrame) };
     m_imagesInFlight.at(m_imageIndex) = currentInFlightFence;
 
-    // Reset the fence for use on the next frame
+    // Reset the fence for use on the next frame.
     currentInFlightFence->reset();
 
-    // Submit the queue and wait for the operation to complete
-    // Being queue submission
+    // Submit the queue and wait for the operation to complete. Being queue submission.
     const VkPipelineStageFlags pipelineStageFlags {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
     };
@@ -636,9 +635,9 @@ auto VulkanBackend::endFrame(const float deltaTime) -> bool {
     }
 
     graphicsCommandBuffer->updateSubmitted();
-    // End queue submission
+    // End queue submission.
 
-    // Give the image back to the swapchain
+    // Give the image back to the swapchain.
     m_swapchain->present(
         m_framebufferWidth,
         m_framebufferHeight,
@@ -651,11 +650,16 @@ auto VulkanBackend::endFrame(const float deltaTime) -> bool {
     return true;
 }
 
-auto VulkanBackend::drawFrame(const Packet& packet) -> bool {
-    return true;
+auto Backend::updateObject(
+    const math::Matrix4x4& model
+) -> void {
+    m_shaderObject->updateObject(
+        m_graphicsCommandBuffers.at(m_imageIndex)->getHandle(),
+        model
+    );
 }
 
-auto VulkanBackend::regenerateFramebuffers() -> void {
+auto Backend::regenerateFramebuffers() -> void {
     const std::vector<VkImageView> swapchainImageViews { m_swapchain->getImageViews() };
     const std::shared_ptr<Image> swapchainDepthAttachment { m_swapchain->getDepthAttachment() };
 
@@ -685,7 +689,7 @@ auto VulkanBackend::regenerateFramebuffers() -> void {
     );
 }
 
-auto VulkanBackend::createCommandBuffers() -> void {
+auto Backend::createCommandBuffers() -> void {
     const VkCommandPool graphicsCommandPool { m_device->getGraphicsCommandPool() };
 
     const uint32_t imagesCount { static_cast<uint32_t>(m_swapchain->getImages().size()) };
@@ -707,7 +711,7 @@ auto VulkanBackend::createCommandBuffers() -> void {
     core::Logger::info("Vulkan graphics command buffers created!");
 }
 
-auto VulkanBackend::recreateSwapchain() -> bool {
+auto Backend::recreateSwapchain() -> bool {
     if (m_recreatingSwapchain) {
         core::Logger::debug("VulkanBackend::recreateSwapchain - called when already recreating, booting...");
         return false;
@@ -770,7 +774,7 @@ auto VulkanBackend::recreateSwapchain() -> bool {
     return true;
 }
 
-auto VulkanBackend::createBuffers() -> void {
+auto Backend::createBuffers() -> void {
     const VkMemoryPropertyFlags memoryPropertyFlags {
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     };
@@ -808,7 +812,7 @@ auto VulkanBackend::createBuffers() -> void {
     m_geometryIndexOffset = 0u;
 }
 
-auto VulkanBackend::uploadDataRange(
+auto Backend::uploadDataRange(
     const VkCommandPool& commandPool,
     const VkFence& fence,
     const VkQueue& queue,

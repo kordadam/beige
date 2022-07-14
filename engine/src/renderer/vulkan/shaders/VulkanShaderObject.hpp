@@ -36,6 +36,10 @@ public:
         const uint32_t imageIndex,
         const VkCommandBuffer& commandBuffer
     ) -> void;
+    auto updateObject(
+        const VkCommandBuffer& commandBuffer,
+        const math::Matrix4x4& model
+    ) -> void;
 
 private:
     struct Stage {

@@ -17,7 +17,7 @@ m_input { std::make_shared<Input>() },
 m_platform { std::make_shared<platform::Platform>(game->getAppConfig(), m_input) },
 m_clock { std::make_unique<Clock>() },
 m_rendererFrontend {
-    std::make_unique<renderer::RendererFrontend>(
+    std::make_unique<renderer::Frontend>(
         game->getAppConfig().name,
         m_windowWidth,
         m_windowHeight,

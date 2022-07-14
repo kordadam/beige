@@ -151,16 +151,24 @@ m_handle { VK_NULL_HANDLE } {
         VK_FALSE                                                     // primitiveRestartEnable
     };
 
+    // Push constants.
+    const VkPushConstantRange pushConstantRange {
+        VK_SHADER_STAGE_VERTEX_BIT,                          // stageFlags
+        static_cast<uint32_t>(sizeof(math::Matrix4x4)) * 0u, // offset
+        static_cast<uint32_t>(sizeof(math::Matrix4x4)) * 2u  // size
+    };
+
     const VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {
         VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,      // sType
         nullptr,                                            // pNext
         0u,                                                 // flags
         static_cast<uint32_t>(descriptorSetLayouts.size()), // setLayoutCount
         descriptorSetLayouts.data(),                        // pSetLayouts
-        0u,                                                 // pushConstantRangeCount
-        nullptr                                             // pPushConstantRanges
+        1u,                                                 // pushConstantRangeCount
+        &pushConstantRange                                  // pPushConstantRanges
     };
 
+    // Create the pipeline layout.
     VULKAN_CHECK(
         vkCreatePipelineLayout(
             m_device->getLogicalDevice(),

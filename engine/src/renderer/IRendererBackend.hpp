@@ -7,10 +7,10 @@
 namespace beige {
 namespace renderer {
 
-class IRendererBackend {
+class IBackend {
 public:
-    IRendererBackend() = default;
-    virtual ~IRendererBackend() = default;
+    IBackend() = default;
+    virtual ~IBackend() = default;
 
     virtual auto onResized(const uint16_t width, const uint16_t height) -> void = 0;
     virtual auto beginFrame(const float deltaTime) -> bool = 0;
@@ -22,7 +22,9 @@ public:
         const int32_t mode
     ) -> void = 0;
     virtual auto endFrame(const float deltaTime) -> bool = 0;
-    virtual auto drawFrame(const Packet& packet) -> bool = 0;
+    virtual auto updateObject(
+        const math::Matrix4x4& model
+    ) -> void = 0;
 };
 
 } // namespace renderer

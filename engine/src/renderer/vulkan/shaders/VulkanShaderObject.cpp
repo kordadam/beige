@@ -325,6 +325,20 @@ auto ShaderObject::updateGlobalState(
     );
 }
 
+auto ShaderObject::updateObject(
+    const VkCommandBuffer& commandBuffer,
+    const math::Matrix4x4& model
+) -> void {
+    vkCmdPushConstants(
+        commandBuffer,
+        m_pipeline->getPipelineLayout(),
+        VK_SHADER_STAGE_VERTEX_BIT,
+        0u,
+        static_cast<uint32_t>(sizeof(math::Matrix4x4)),
+        static_cast<const void*>(&model)
+    );
+}
+
 auto ShaderObject::createShaderModule(
     Stage& stage,
     const std::string& name,
