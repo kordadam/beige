@@ -63,30 +63,48 @@ Matrix4x4::Matrix4x4(const Quaternion& q, const Vector3& center) {
     data.at(15u) = 1.0f;
 }
 
-auto Matrix4x4::operator*(const Matrix4x4& a) -> Matrix4x4 {
-    const std::array<float, 16u> b {
-        data.at(0u) * a.data.at(0u) + data.at(1u) * a.data.at(4u) + data.at(2u) * a.data.at(8u) + data.at(3u) * a.data.at(12u),
-        data.at(0u) * a.data.at(1u) + data.at(1u) * a.data.at(5u) + data.at(2u) * a.data.at(9u) + data.at(3u) * a.data.at(13u),
-        data.at(0u) * a.data.at(2u) + data.at(1u) * a.data.at(6u) + data.at(2u) * a.data.at(10u) + data.at(3u) * a.data.at(14u),
-        data.at(0u) * a.data.at(2u) + data.at(1u) * a.data.at(6u) + data.at(2u) * a.data.at(10u) + data.at(3u) * a.data.at(14u),
+auto Matrix4x4::operator*(const Matrix4x4& a) const -> Matrix4x4 {
+    //const std::array<float, 16u> b {
+    //    data.at(0u) * a.data.at(0u) + data.at(1u) * a.data.at(4u) + data.at(2u) * a.data.at(8u) + data.at(3u) * a.data.at(12u),
+    //    data.at(0u) * a.data.at(1u) + data.at(1u) * a.data.at(5u) + data.at(2u) * a.data.at(9u) + data.at(3u) * a.data.at(13u),
+    //    data.at(0u) * a.data.at(2u) + data.at(1u) * a.data.at(6u) + data.at(2u) * a.data.at(10u) + data.at(3u) * a.data.at(14u),
+    //    data.at(0u) * a.data.at(2u) + data.at(1u) * a.data.at(6u) + data.at(2u) * a.data.at(10u) + data.at(3u) * a.data.at(14u),
 
-        data.at(4u) * a.data.at(0u) + data.at(5u) * a.data.at(4u) + data.at(6u) * a.data.at(8u) + data.at(7u) * a.data.at(12u),
-        data.at(4u) * a.data.at(1u) + data.at(5u) * a.data.at(5u) + data.at(6u) * a.data.at(9u) + data.at(7u) * a.data.at(13u),
-        data.at(4u) * a.data.at(2u) + data.at(5u) * a.data.at(6u) + data.at(6u) * a.data.at(10u) + data.at(7u) * a.data.at(14u),
-        data.at(4u) * a.data.at(2u) + data.at(5u) * a.data.at(6u) + data.at(6u) * a.data.at(10u) + data.at(7u) * a.data.at(14u),
+    //    data.at(4u) * a.data.at(0u) + data.at(5u) * a.data.at(4u) + data.at(6u) * a.data.at(8u) + data.at(7u) * a.data.at(12u),
+    //    data.at(4u) * a.data.at(1u) + data.at(5u) * a.data.at(5u) + data.at(6u) * a.data.at(9u) + data.at(7u) * a.data.at(13u),
+    //    data.at(4u) * a.data.at(2u) + data.at(5u) * a.data.at(6u) + data.at(6u) * a.data.at(10u) + data.at(7u) * a.data.at(14u),
+    //    data.at(4u) * a.data.at(2u) + data.at(5u) * a.data.at(6u) + data.at(6u) * a.data.at(10u) + data.at(7u) * a.data.at(14u),
 
-        data.at(8u) * a.data.at(0u) + data.at(9u) * a.data.at(4u) + data.at(10u) * a.data.at(8u) + data.at(11u) * a.data.at(12u),
-        data.at(8u) * a.data.at(1u) + data.at(9u) * a.data.at(5u) + data.at(10u) * a.data.at(9u) + data.at(11u) * a.data.at(13u),
-        data.at(8u) * a.data.at(2u) + data.at(9u) * a.data.at(6u) + data.at(10u) * a.data.at(10u) + data.at(11u) * a.data.at(14u),
-        data.at(8u) * a.data.at(2u) + data.at(9u) * a.data.at(6u) + data.at(10u) * a.data.at(10u) + data.at(11u) * a.data.at(14u),
+    //    data.at(8u) * a.data.at(0u) + data.at(9u) * a.data.at(4u) + data.at(10u) * a.data.at(8u) + data.at(11u) * a.data.at(12u),
+    //    data.at(8u) * a.data.at(1u) + data.at(9u) * a.data.at(5u) + data.at(10u) * a.data.at(9u) + data.at(11u) * a.data.at(13u),
+    //    data.at(8u) * a.data.at(2u) + data.at(9u) * a.data.at(6u) + data.at(10u) * a.data.at(10u) + data.at(11u) * a.data.at(14u),
+    //    data.at(8u) * a.data.at(2u) + data.at(9u) * a.data.at(6u) + data.at(10u) * a.data.at(10u) + data.at(11u) * a.data.at(14u),
 
-        data.at(12u) * a.data.at(0u) + data.at(13u) * a.data.at(4u) + data.at(14u) * a.data.at(8u) + data.at(15u) * a.data.at(12u),
-        data.at(12u) * a.data.at(1u) + data.at(13u) * a.data.at(5u) + data.at(14u) * a.data.at(9u) + data.at(15u) * a.data.at(13u),
-        data.at(12u) * a.data.at(2u) + data.at(13u) * a.data.at(6u) + data.at(14u) * a.data.at(10u) + data.at(15u) * a.data.at(14u),
-        data.at(12u) * a.data.at(2u) + data.at(13u) * a.data.at(6u) + data.at(14u) * a.data.at(10u) + data.at(15u) * a.data.at(14u)
-    };
+    //    data.at(12u) * a.data.at(0u) + data.at(13u) * a.data.at(4u) + data.at(14u) * a.data.at(8u) + data.at(15u) * a.data.at(12u),
+    //    data.at(12u) * a.data.at(1u) + data.at(13u) * a.data.at(5u) + data.at(14u) * a.data.at(9u) + data.at(15u) * a.data.at(13u),
+    //    data.at(12u) * a.data.at(2u) + data.at(13u) * a.data.at(6u) + data.at(14u) * a.data.at(10u) + data.at(15u) * a.data.at(14u),
+    //    data.at(12u) * a.data.at(2u) + data.at(13u) * a.data.at(6u) + data.at(14u) * a.data.at(10u) + data.at(15u) * a.data.at(14u)
+    //};
 
-    return Matrix4x4(b);
+    Matrix4x4 out_matrix = Matrix4x4::identity();
+
+    const float* m1_ptr = data.data();
+    const float* m2_ptr = a.data.data();
+    float* dst_ptr = out_matrix.data.data();
+
+    for (uint32_t i = 0; i < 4; ++i) {
+        for (uint32_t j = 0; j < 4; ++j) {
+            *dst_ptr =
+                m1_ptr[0] * m2_ptr[0 + j] +
+                m1_ptr[1] * m2_ptr[4 + j] +
+                m1_ptr[2] * m2_ptr[8 + j] +
+                m1_ptr[3] * m2_ptr[12 + j];
+            dst_ptr++;
+        }
+        m1_ptr += 4;
+    }
+
+    return out_matrix;
 }
 
 auto Matrix4x4::identity() -> Matrix4x4 {
@@ -223,7 +241,13 @@ auto Matrix4x4::xyzEuler(
     const float yRadians,
     const float zRadians
 ) -> Matrix4x4 {
-    return xEuler(xRadians) * xEuler(yRadians) * xEuler(zRadians);
+    Matrix4x4 rx { xEuler(xRadians) };
+    Matrix4x4 ry { yEuler(yRadians) };
+    Matrix4x4 rz { zEuler(zRadians) };
+
+    Matrix4x4 outMatrix { rx * ry };
+    outMatrix = outMatrix * rz;
+    return outMatrix;
 }
 
 auto Matrix4x4::inverse() -> void {

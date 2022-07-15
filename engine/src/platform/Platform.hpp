@@ -40,8 +40,7 @@ public:
     using Event = core::Event<EventCode, uint32_t, uint32_t>;
 
     Platform(
-        const core::AppConfig& appConfig,
-        std::shared_ptr<core::Input> input
+        const core::AppConfig& appConfig
     );
     ~Platform();
 
@@ -54,14 +53,21 @@ public:
         const VkInstance& instance,
         const VkAllocationCallbacks* allocationCallbacks
     ) -> std::optional<VkSurfaceKHR>;
+    auto getAbsoluteTime() -> double;
 
 #ifdef BEIGE_PLATFORM_WIN32
     auto processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam) -> LRESULT;
-#endif
+    auto clockSetup() -> void;
+#endif // BEIGE_PLATFORM_WIN32
 
 private:
     State m_state;
     std::shared_ptr<core::Input> m_input;
+
+#ifdef BEIGE_PLATFORM_WIN32
+    double m_clockFrequency;
+    LARGE_INTEGER m_startTime;
+#endif // BEIGE_PLATFORM_WIN32
 };
 
 } // namespace platform

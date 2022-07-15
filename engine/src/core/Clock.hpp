@@ -1,22 +1,25 @@
 #pragma once
 
-#include <chrono>
+#include "../platform/Platform.hpp"
 
 namespace beige {
 namespace core {
 
 class Clock final {
 public:
-    Clock();
+    Clock(std::shared_ptr<platform::Platform> platform);
     ~Clock();
 
-    auto getElapsedTime() -> float;
-    auto getAbsoluteTime() -> float;
+    auto getElapsedTime() -> double;
+    auto start() -> void;
+    auto stop() -> void;
     auto update() -> void;
 
 private:
-    std::chrono::high_resolution_clock::time_point m_startTime;
-    float m_elapsedTime;
+    std::shared_ptr<platform::Platform> m_platform;
+
+    double m_startTime;
+    double m_elapsedTime;
 };
 
 } // namespace core

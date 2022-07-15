@@ -26,7 +26,7 @@ private:
 
     bool m_isRunning;
     bool m_isSuspended;
-    float m_lastTime;
+    double m_lastTime;
 
     uint32_t m_windowWidth;
     uint32_t m_windowHeight;

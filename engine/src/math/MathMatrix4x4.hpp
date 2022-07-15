@@ -26,7 +26,7 @@ public:
     Matrix4x4(const Quaternion& q, const Vector3& center);
     ~Matrix4x4() = default;
 
-    auto operator*(const Matrix4x4& a) -> Matrix4x4;
+    auto operator*(const Matrix4x4& a) const -> Matrix4x4;
 
     static auto identity() -> Matrix4x4;
     static auto ortographic(

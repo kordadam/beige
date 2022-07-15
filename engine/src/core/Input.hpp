@@ -5,6 +5,7 @@
 #include "Event.hpp"
 
 #include <cstdint>
+#include <vector>
 
 namespace beige {
 namespace core {
@@ -16,10 +17,11 @@ public:
     using KeyEvent = Event<KeyEventCode, Key>;
     using MouseEvent = Event<MouseEventCode, MouseState>;
 
-    Input();
-    ~Input();
+    ~Input() = default;
 
-    auto update(const float deltaTime) -> void;
+    static auto getInstance() -> std::shared_ptr<Input>;
+
+    static auto update(const double deltaTime) -> void;
 
     auto isKeyDown(const Key key) -> bool;
     auto isKeyUp(const Key key) -> bool;
@@ -32,10 +34,14 @@ public:
     auto processMouseWheel(const int32_t deltaZ) -> void;
 
 private:
-    KeyboardState m_currentKeyboardState;
-    KeyboardState m_previousKeyboardState;
-    MouseState m_currentMouseState;
-    MouseState m_previousMouseState;
+    Input() = default;
+
+    static std::shared_ptr<Input> m_instance;
+
+    static std::vector<bool> m_currentKeyboardState;
+    static std::vector<bool> m_previousKeyboardState;
+    static MouseState m_currentMouseState;
+    static MouseState m_previousMouseState;
 };
 
 } // namespace core

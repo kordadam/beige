@@ -20,8 +20,20 @@ m_backend {
         platform
     )
 },
-m_frameCount { 0u } {
-
+m_frameCount { 0u },
+m_nearClip { 0.01f },
+m_farClip { 1000.0f },
+m_projection {
+    math::Matrix4x4::perspective(
+        math::Quaternion::degToRad(45.0f),
+        static_cast<float>(width) / static_cast<float>(height),
+        m_nearClip,
+        m_farClip
+    )
+},
+m_view {
+    math::Matrix4x4::translation(math::Vector3(0.0f, 0.0f, -30.0f))
+} {
 }
 
 Frontend::~Frontend() {
@@ -29,27 +41,19 @@ Frontend::~Frontend() {
 }
 
 auto Frontend::onResized(const uint16_t width, const uint16_t height) -> void {
+    m_projection = math::Matrix4x4::perspective(
+        math::Quaternion::degToRad(45.0f),
+        static_cast<float>(width) / static_cast<float>(height),
+        m_nearClip,
+        m_farClip
+    );
+
     m_backend->onResized(width, height);
 }
 
 auto Frontend::drawFrame(const Packet& packet) -> bool {
     // If the begin frame returned successfully, mid-frame operations may continue.
     if (beginFrame(packet.deltaTime)) {
-
-        const math::Matrix4x4 projection {
-            math::Matrix4x4::perspective(
-                math::Quaternion::degToRad(45.0f),
-                1280.0f / 720.0f,
-                0.1f,
-                1000.0f
-            )
-        };
-        static float z { 0.0f };
-        z += 0.005f;
-        math::Matrix4x4 view {
-            math::Matrix4x4::translation(math::Vector3(0.0f, 0.0f, z))
-        };
-        view.inverse();
         static float angle { 0.01f };
         angle += 0.001f;
         const math::Quaternion rotation {
@@ -62,8 +66,8 @@ auto Frontend::drawFrame(const Packet& packet) -> bool {
         };
 
         m_backend->updateGlobalState(
-            projection,
-            view,
+            m_projection,
+            m_view,
             math::Vector3::zero(),
             math::Vector4::one(),
             0
@@ -80,6 +84,10 @@ auto Frontend::drawFrame(const Packet& packet) -> bool {
     }
 
     return true;
+}
+
+auto Frontend::setView(const math::Matrix4x4& view) -> void {
+    m_view = view;
 }
 
 auto Frontend::beginFrame(const float deltaTime) -> bool {

@@ -3,9 +3,10 @@
 namespace beige {
 namespace core {
 
-Clock::Clock() :
-m_startTime { std::chrono::high_resolution_clock::now() },
-m_elapsedTime { 0.0f } {
+Clock::Clock(std::shared_ptr<platform::Platform> platform) :
+m_platform { platform },
+m_startTime { m_platform->getAbsoluteTime() },
+m_elapsedTime { 0.0 } {
 
 }
 
@@ -13,21 +14,23 @@ Clock::~Clock() {
 
 }
 
-auto Clock::getElapsedTime() -> float {
+auto Clock::getElapsedTime() -> double {
     return m_elapsedTime;
 }
 
-auto Clock::getAbsoluteTime() -> float {
-    return
-        std::chrono::duration_cast<std::chrono::duration<float>>(
-            std::chrono::high_resolution_clock::now() - m_startTime
-        ).count();
+auto Clock::start() -> void {
+    m_startTime = m_platform->getAbsoluteTime();
+    m_elapsedTime = 0.0;
+}
+
+auto Clock::stop() -> void {
+    m_startTime = 0.0;
 }
 
 auto Clock::update() -> void {
-    m_elapsedTime = std::chrono::duration_cast<std::chrono::duration<float>>(
-        std::chrono::high_resolution_clock::now() - m_startTime
-    ).count();
+    if (m_startTime != 0.0) {
+        m_elapsedTime = m_platform->getAbsoluteTime() - m_startTime;
+    }
 }
 
 

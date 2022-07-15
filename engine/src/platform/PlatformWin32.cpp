@@ -15,11 +15,12 @@ static Platform* platform { nullptr };
 LRESULT CALLBACK processMessageCallback(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam);
 
 Platform::Platform(
-    const core::AppConfig& appConfig,
-    std::shared_ptr<core::Input> input
+    const core::AppConfig& appConfig
 ) :
 m_state { },
-m_input { input } {
+m_input { core::Input::getInstance() },
+m_clockFrequency { 0.0 },
+m_startTime { } {
     m_state.hInstance = GetModuleHandleA(0);
 
     const HICON icon { LoadIcon(m_state.hInstance, IDI_APPLICATION) };
@@ -79,6 +80,9 @@ m_input { input } {
     const int32_t showWindowCommandFlags { shouldActivate ? SW_SHOW : SW_SHOWNOACTIVATE };
     ShowWindow(m_state.hnwd, showWindowCommandFlags);
 
+    // Clock setup
+    clockSetup();
+
     platform = this;
 }
 
@@ -112,6 +116,49 @@ auto Platform::Sleep(const uint64_t timeInMs) -> void {
 
 auto Platform::getVulkanRequiredExtensionNames() -> std::vector<const char*> {
     return std::vector<const char*> { "VK_KHR_win32_surface" };
+}
+
+auto Platform::createVulkanSurface(
+    const VkInstance& instance,
+    const VkAllocationCallbacks* allocationCallbacks
+) -> std::optional<VkSurfaceKHR> {
+    std::optional<VkSurfaceKHR> surface{ std::nullopt };
+
+    const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo{
+        VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, // sType
+        nullptr,                                         // pNext
+        0u,                                              // flags
+        m_state.hInstance,                               // hinstance
+        m_state.hnwd                                     // hwnd
+    };
+
+    const VkResult result{
+        vkCreateWin32SurfaceKHR(
+            instance,
+            &surfaceCreateInfo,
+            allocationCallbacks,
+            &m_state.surface
+        )
+    };
+
+    if (result == VK_SUCCESS) {
+        surface = m_state.surface;
+    }
+    else {
+        core::Logger::fatal("Failed to create Vulkan surface!");
+    }
+
+    return surface;
+}
+
+auto Platform::getAbsoluteTime() -> double {
+    if (!m_clockFrequency) {
+        clockSetup();
+    }
+
+    LARGE_INTEGER nowTime;
+    QueryPerformanceCounter(&nowTime);
+    return static_cast<double>(nowTime.QuadPart) * m_clockFrequency;
 }
 
 auto Platform::processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam) -> LRESULT {
@@ -197,36 +244,11 @@ auto Platform::processMessage(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM
     return DefWindowProcA(hwnd, message, wParam, lParam);
 }
 
-auto Platform::createVulkanSurface(
-    const VkInstance& instance,
-    const VkAllocationCallbacks* allocationCallbacks
-) -> std::optional<VkSurfaceKHR> {
-    std::optional<VkSurfaceKHR> surface { std::nullopt };
-
-    const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo {
-        VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR, // sType
-        nullptr,                                         // pNext
-        0u,                                              // flags
-        m_state.hInstance,                               // hinstance
-        m_state.hnwd                                     // hwnd
-    };
-
-    const VkResult result {
-        vkCreateWin32SurfaceKHR(
-            instance,
-            &surfaceCreateInfo,
-            allocationCallbacks,
-            &m_state.surface
-        )
-    };
-
-    if (result == VK_SUCCESS) {
-        surface = m_state.surface;
-    } else {
-        core::Logger::fatal("Failed to create Vulkan surface!");
-    }
-
-    return surface;
+auto Platform::clockSetup() -> void {
+    LARGE_INTEGER frequency;
+    QueryPerformanceFrequency(&frequency);
+    m_clockFrequency = 1.0 / static_cast<double>(frequency.QuadPart);
+    QueryPerformanceCounter(&m_startTime);
 }
 
 LRESULT CALLBACK processMessageCallback(HWND hwnd, uint32_t message, WPARAM wParam, LPARAM lParam) {

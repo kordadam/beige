@@ -22,9 +22,16 @@ public:
     auto onResized(const uint16_t width, const uint16_t height) -> void;
     auto drawFrame(const Packet& packet) -> bool;
 
+    auto setView(const math::Matrix4x4& view) -> void;
+
 private:
     std::unique_ptr<IBackend> m_backend;
     uint64_t m_frameCount;
+
+    float m_nearClip;
+    float m_farClip;
+    math::Matrix4x4 m_projection;
+    math::Matrix4x4 m_view;
 
     auto beginFrame(const float deltaTime) -> bool;
     auto endFrame(const float deltaTime) -> bool;

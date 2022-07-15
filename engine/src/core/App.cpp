@@ -13,9 +13,9 @@ m_isSuspended { false },
 m_lastTime { 0.0f },
 m_windowWidth { game->getAppConfig().startWidth },
 m_windowHeight { game->getAppConfig().startHeight },
-m_input { std::make_shared<Input>() },
-m_platform { std::make_shared<platform::Platform>(game->getAppConfig(), m_input) },
-m_clock { std::make_unique<Clock>() },
+m_input { Input::getInstance() },
+m_platform { std::make_shared<platform::Platform>(game->getAppConfig()) },
+m_clock { std::make_unique<Clock>(m_platform) },
 m_rendererFrontend {
     std::make_unique<renderer::Frontend>(
         game->getAppConfig().name,
@@ -130,11 +130,13 @@ App::~App() {
 }
 
 auto App::run() -> bool {
+    m_isRunning = true;
+    m_clock->start();
     m_clock->update();
     m_lastTime = m_clock->getElapsedTime();
 
     uint32_t frameCount { 0u };
-    const float targetFrameInSeconds = 1.0f / 60.0f;
+    const double targetFrameInSeconds = 1.0 / 60.0;
 
     while (m_isRunning) {
         if (!m_platform->pumpMessages()) {
@@ -142,17 +144,21 @@ auto App::run() -> bool {
         }
 
         if (!m_isSuspended) {
+            // Update clock and get delta time.
             m_clock->update();
-            const float currentTime { m_clock->getElapsedTime() };
-            const float deltaTime { currentTime - m_lastTime };
-            const float frameStartTime { m_clock->getAbsoluteTime() }; // Get absolute time
+            const double currentTime { m_clock->getElapsedTime() };
+            const double deltaTime { currentTime - m_lastTime };
+            const double frameStartTime { m_platform->getAbsoluteTime() };
 
-            if (!m_game->update(deltaTime)) {
+            if (!m_game->update(static_cast<float>(deltaTime))) {
                 Logger::fatal("Game update failed, shutting down!");
                 break;
             }
 
-            if (!m_game->render(deltaTime)) {
+            // HACK
+            m_rendererFrontend->setView(m_game->getState().view);
+
+            if (!m_game->render(static_cast<float>(deltaTime))) {
                 Logger::fatal("Game render failed, shutting down!");
                 break;
             }
@@ -165,12 +171,12 @@ auto App::run() -> bool {
             m_rendererFrontend->drawFrame(packet);
 
             // Figure out how long the frame took and, if below
-            const float frameEndTime { m_clock->getAbsoluteTime() }; // Get absolute time
-            const float frameElapsedTime { frameEndTime - frameStartTime };
-            const float remainingInSeconds { targetFrameInSeconds - frameElapsedTime };
+            const double frameEndTime { m_platform->getAbsoluteTime() };
+            const double frameElapsedTime { frameEndTime - frameStartTime };
+            const double remainingInS { targetFrameInSeconds - frameElapsedTime};
 
-            if (remainingInSeconds > 0.0f) {
-                const uint64_t remainingInMs { static_cast<uint64_t>(remainingInSeconds * 1000.0f) };
+            if (remainingInS > 0.0) {
+                uint64_t remainingInMs { static_cast<uint64_t>(remainingInS) * 1000u };
                 const float isFrameLimit { false };
                 if (remainingInMs > 0u && isFrameLimit) {
                     m_platform->Sleep(remainingInMs - 1u);

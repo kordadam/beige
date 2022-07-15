@@ -144,8 +144,6 @@ enum class Button : uint32_t {
     Right
 };
 
-using KeyboardState = std::map<Key, bool>;
-
 struct MouseState {
     int32_t xPos;
     int32_t yPos;
