@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VulkanDevice.hpp"
+#include "VulkanCommandBuffer.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -29,11 +30,23 @@ public:
 
     auto getImageView() const -> const VkImageView&;
 
+    auto transitionLayout(
+        const VkCommandBuffer& commandBuffer,
+        const VkFormat& format,
+        const VkImageLayout& oldLayout,
+        const VkImageLayout& newLayout
+    ) -> void;
+
+    auto copyFromBuffer(
+        const VkBuffer& buffer,
+        const VkCommandBuffer& commandBuffer
+    ) -> void;
+
 private:
     VkAllocationCallbacks* m_allocationCallbacks;
     std::shared_ptr<Device> m_device;
 
-    VkImage m_image;
+    VkImage m_handle;
     VkDeviceMemory m_deviceMemory;
     VkImageView m_imageView;
     uint32_t m_width;

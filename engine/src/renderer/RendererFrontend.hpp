@@ -24,6 +24,17 @@ public:
 
     auto setView(const math::Matrix4x4& view) -> void;
 
+    auto createTexture(
+        const std::string& name,
+        const bool autoRelease,
+        const int32_t width,
+        const int32_t height,
+        const int32_t channelCount,
+        const std::vector<std::byte>& pixels,
+        const bool hasTransparency
+    ) -> std::shared_ptr<resources::ITexture>;
+    auto destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void;
+
 private:
     std::unique_ptr<IBackend> m_backend;
     uint64_t m_frameCount;

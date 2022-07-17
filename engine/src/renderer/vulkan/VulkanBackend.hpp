@@ -9,7 +9,9 @@
 #include "VulkanFramebuffer.hpp"
 #include "VulkanFence.hpp"
 #include "VulkanBuffer.hpp"
+#include "VulkanTexture.hpp"
 #include "shaders/VulkanShaderObject.hpp"
+#include "../../resources/ITexture.hpp"
 
 namespace beige {
 namespace renderer {
@@ -23,10 +25,10 @@ public:
         const uint32_t height,
         std::shared_ptr<platform::Platform> platform
     );
-
     ~Backend();
 
     auto onResized(const uint16_t width, const uint16_t height) -> void override;
+
     auto beginFrame(const float deltaTime) -> bool override;
     auto updateGlobalState(
         const math::Matrix4x4& projection,
@@ -36,9 +38,21 @@ public:
         const int32_t mode
     ) -> void override;
     auto endFrame(const float deltaTime) -> bool override;
+
     auto updateObject(
         const math::Matrix4x4& model
     ) -> void override;
+
+    auto createTexture(
+        const std::string& name,
+        const bool autoRelease,
+        const int32_t width,
+        const int32_t height,
+        const int32_t channelCount,
+        const std::vector<std::byte>& pixels,
+        const bool hasTransparency
+    ) -> std::shared_ptr<resources::ITexture> override;
+    auto destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void override;
 
 private:
     std::shared_ptr<platform::Platform> m_platform;

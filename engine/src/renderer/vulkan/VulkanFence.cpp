@@ -13,7 +13,7 @@ Fence::Fence(
 ) :
 m_allocationCallbacks{ allocationCallbacks },
 m_device { device },
-m_fence { 0 },
+m_fence { VK_NULL_HANDLE },
 m_isSignaled { createSignaled } {
     const VkDevice logicalDevice { m_device->getLogicalDevice() };
 

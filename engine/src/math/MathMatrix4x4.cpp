@@ -198,11 +198,6 @@ auto Matrix4x4::scale(const Vector3& scale) -> Matrix4x4 {
     return a;
 }
 
-// 0   1   2   3
-// 4   5   6   7
-// 8   9   10  11
-// 12  13  14  15
-
 auto Matrix4x4::xEuler(const float angleInRadians) -> Matrix4x4 {
     Matrix4x4 a { identity() };
     const float c { std::cos(angleInRadians) };

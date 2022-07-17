@@ -59,12 +59,15 @@ set(SRC
     src/renderer/vulkan/VulkanSurface.hpp
     src/renderer/vulkan/VulkanSwapchain.cpp
     src/renderer/vulkan/VulkanSwapchain.hpp
+    src/renderer/vulkan/VulkanTexture.cpp
+    src/renderer/vulkan/VulkanTexture.hpp
     src/renderer/vulkan/VulkanUtils.cpp
     src/renderer/vulkan/VulkanUtils.hpp
     src/renderer/IRendererBackend.hpp
     src/renderer/RendererFrontend.cpp
     src/renderer/RendererFrontend.hpp
     src/renderer/RendererTypes.hpp
+    src/resources/ITexture.hpp
     src/Defines.hpp
     src/Entry.hpp
     src/IGame.hpp

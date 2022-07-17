@@ -34,6 +34,7 @@ m_projection {
 m_view {
     math::Matrix4x4::translation(math::Vector3(0.0f, 0.0f, -30.0f))
 } {
+    m_view.inverse();
 }
 
 Frontend::~Frontend() {
@@ -54,6 +55,14 @@ auto Frontend::onResized(const uint16_t width, const uint16_t height) -> void {
 auto Frontend::drawFrame(const Packet& packet) -> bool {
     // If the begin frame returned successfully, mid-frame operations may continue.
     if (beginFrame(packet.deltaTime)) {
+        m_backend->updateGlobalState(
+            m_projection,
+            m_view,
+            math::Vector3::zero(),
+            math::Vector4::one(),
+            0
+        );
+
         static float angle { 0.01f };
         angle += 0.001f;
         const math::Quaternion rotation {
@@ -65,13 +74,6 @@ auto Frontend::drawFrame(const Packet& packet) -> bool {
             rotation, math::Vector3::zero()
         };
 
-        m_backend->updateGlobalState(
-            m_projection,
-            m_view,
-            math::Vector3::zero(),
-            math::Vector4::one(),
-            0
-        );
         m_backend->updateObject(model);
 
         // End the frame. if this fails, it is likely unrecoverable.
@@ -88,6 +90,30 @@ auto Frontend::drawFrame(const Packet& packet) -> bool {
 
 auto Frontend::setView(const math::Matrix4x4& view) -> void {
     m_view = view;
+}
+
+auto Frontend::createTexture(
+    const std::string& name,
+    const bool autoRelease,
+    const int32_t width,
+    const int32_t height,
+    const int32_t channelCount,
+    const std::vector<std::byte>& pixels,
+    const bool hasTransparency
+) -> std::shared_ptr<resources::ITexture> {
+    return m_backend->createTexture(
+        name,
+        autoRelease,
+        width,
+        height,
+        channelCount,
+        pixels,
+        hasTransparency
+    );
+}
+
+auto Frontend::destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void {
+    m_backend->destroyTexture(texture);
 }
 
 auto Frontend::beginFrame(const float deltaTime) -> bool {

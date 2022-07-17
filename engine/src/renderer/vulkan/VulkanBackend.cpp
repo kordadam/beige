@@ -470,16 +470,15 @@ auto Backend::beginFrame(const float deltaTime) -> bool {
 
     const uint32_t currentFrame { m_swapchain->getCurrentFrame() };
 
-    // Wait for the execution of the current frame to complete
-    // The fence being free will allow this on to move on
+    // Wait for the execution of the current frame to complete.
+    // The fence being free will allow this on to move on.
     if (!m_inFlightFences.at(currentFrame)->wait(UINT64_MAX)) {
         core::Logger::warn("In-flight fence wait failure!");
         return false;
     }
 
-    // Acquire the next image from the swapchain
-    // Pass along the semaphore that should signaled when this completes
-    // This same semaphore will later be waited on by the queue submission to ensure this image is available
+    // Acquire the next image from the swapchain. Pass along the semaphore that should signaled when this completes.
+    // This same semaphore will later be waited on by the queue submission to ensure this image is available.
     const std::optional<uint32_t> imageIndex {
         m_swapchain->acquireNextImageIndex(
             m_framebufferWidth,
@@ -496,12 +495,12 @@ auto Backend::beginFrame(const float deltaTime) -> bool {
 
     m_imageIndex = imageIndex.value();
 
-    // Begin recording commands
+    // Begin recording commands.
     std::shared_ptr<CommandBuffer> graphicsCommandBuffer { m_graphicsCommandBuffers.at(m_imageIndex) };
     graphicsCommandBuffer->reset();
     graphicsCommandBuffer->begin(false, false, false);
 
-    // Dynamic state
+    // Dynamic state.
     const VkViewport viewport {
         0.0f,                                     // x
         static_cast<float>(m_framebufferHeight),  // y
@@ -511,7 +510,7 @@ auto Backend::beginFrame(const float deltaTime) -> bool {
         1.0f                                      // maxDepth
     };
 
-    // Scissor
+    // Scissor.
     const VkOffset2D scissorOffset {
         0, // x
         0  // y
@@ -659,6 +658,32 @@ auto Backend::updateObject(
     // Issue the draw.
     vkCmdDrawIndexed(graphicsCommandBufferHandle, 6u, 1u, 0u, 0u, 0u);
     // TODO: End temporary test code
+}
+
+auto Backend::createTexture(
+    const std::string& name,
+    const bool autoRelease,
+    const int32_t width,
+    const int32_t height,
+    const int32_t channelCount,
+    const std::vector<std::byte>& pixels,
+    const bool hasTransparency
+) -> std::shared_ptr<resources::ITexture> {
+    return std::make_shared<Texture>(
+        name,
+        autoRelease,
+        width,
+        height,
+        channelCount,
+        pixels,
+        hasTransparency,
+        m_allocationCallbacks,
+        m_device
+    );
+}
+
+auto Backend::destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void {
+
 }
 
 auto Backend::regenerateFramebuffers() -> void {
