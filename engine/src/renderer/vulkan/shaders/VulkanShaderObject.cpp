@@ -2,7 +2,6 @@
 
 #include "../../../core/Logger.hpp"
 #include "../VulkanDefines.hpp"
-#include "../../../math/Math.hpp"
 
 #include <map>
 #include <fstream>
@@ -137,7 +136,7 @@ m_pipeline { nullptr } {
     };
 
     const std::array<uint32_t, attributeCount> sizes {
-        sizeof(math::Vertex3D)
+        sizeof(glm::vec3)
     };
 
     std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions { attributeCount };
@@ -258,11 +257,11 @@ ShaderObject::~ShaderObject() {
     );
 }
 
-auto ShaderObject::setProjection(const math::Matrix4x4& projection) -> void {
+auto ShaderObject::setProjection(const glm::mat4x4& projection) -> void {
     m_globalUniformObject.projection = projection;
 }
 
-auto ShaderObject::setView(const math::Matrix4x4& view) -> void {
+auto ShaderObject::setView(const glm::mat4x4& view) -> void {
     m_globalUniformObject.view = view;
 }
 
@@ -327,14 +326,14 @@ auto ShaderObject::updateGlobalState(
 
 auto ShaderObject::updateObject(
     const VkCommandBuffer& commandBuffer,
-    const math::Matrix4x4& model
+    const glm::mat4x4& model
 ) -> void {
     vkCmdPushConstants(
         commandBuffer,
         m_pipeline->getPipelineLayout(),
         VK_SHADER_STAGE_VERTEX_BIT,
         0u,
-        static_cast<uint32_t>(sizeof(math::Matrix4x4)),
+        static_cast<uint32_t>(sizeof(glm::mat4x4)),
         static_cast<const void*>(&model)
     );
 }

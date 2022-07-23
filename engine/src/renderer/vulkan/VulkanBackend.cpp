@@ -3,7 +3,6 @@
 #include "../../core/Logger.hpp"
 #include "VulkanDefines.hpp"
 #include "VulkanUtils.hpp"
-#include "../../math/Math.hpp"
 
 #include <algorithm>
 #include <array>
@@ -297,11 +296,11 @@ m_geometryIndexOffset { 0u } {
     const float f { 10.0f };
 
     // TODO: Temporary test code
-    std::array<math::Vertex3D, 4u> verts {
-        math::Vertex3D { -0.5f * f, -0.5f * f, 0.0f },
-        math::Vertex3D { 0.5f * f, 0.5f * f, 0.0f },
-        math::Vertex3D { -0.5f * f, 0.5f * f, 0.0f },
-        math::Vertex3D { 0.5f * f, -0.5f * f, 0.0f }
+    std::array<glm::vec3, 4u> verts {
+        glm::vec3(-0.5f * f, -0.5f * f, 0.0f),
+        glm::vec3(0.5f * f, 0.5f * f, 0.0f),
+        glm::vec3(-0.5f * f, 0.5f * f, 0.0f),
+        glm::vec3(0.5f * f, -0.5f * f, 0.0f)
     };
 
     std::array<uint32_t, 6u> indices {
@@ -314,7 +313,7 @@ m_geometryIndexOffset { 0u } {
         m_device->getGraphicsQueue(),
         m_objectVertexBuffer->getHandle(),
         0u,
-        sizeof(math::Vertex3D) * verts.size(),
+        sizeof(glm::vec3) * verts.size(),
         verts.data()
     );
 
@@ -543,10 +542,10 @@ auto Backend::beginFrame(const float deltaTime) -> bool {
 }
 
 auto Backend::updateGlobalState(
-    const math::Matrix4x4& projection,
-    const math::Matrix4x4& view,
-    const math::Vector3& viewPosition,
-    const math::Vector4& ambientColor,
+    const glm::mat4x4& projection,
+    const glm::mat4x4& view,
+    const glm::vec3& viewPosition,
+    const glm::vec4& ambientColor,
     const int32_t mode
 ) -> void {
     const VkCommandBuffer graphicsCommandBufferHandle { m_graphicsCommandBuffers.at(m_imageIndex)->getHandle() };
@@ -636,7 +635,7 @@ auto Backend::endFrame(const float deltaTime) -> bool {
 }
 
 auto Backend::updateObject(
-    const math::Matrix4x4& model
+    const glm::mat4x4& model
 ) -> void {
     m_shaderObject->updateObject(
         m_graphicsCommandBuffers.at(m_imageIndex)->getHandle(),
@@ -811,7 +810,7 @@ auto Backend::createBuffers() -> void {
         VK_BUFFER_USAGE_TRANSFER_DST_BIT |
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT
     };
-    const uint64_t vertexBufferSize { sizeof(math::Vertex3D) * 1024u * 1024u };
+    const uint64_t vertexBufferSize { sizeof(glm::vec3) * 1024u * 1024u };
     m_objectVertexBuffer = std::make_unique<Buffer>(
         m_allocationCallbacks,
         m_device,

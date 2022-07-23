@@ -3,6 +3,10 @@
 #include "vulkan/VulkanBackend.hpp"
 #include "../core/Logger.hpp"
 
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+
 namespace beige {
 namespace renderer {
 
@@ -24,17 +28,15 @@ m_frameCount { 0u },
 m_nearClip { 0.01f },
 m_farClip { 1000.0f },
 m_projection {
-    math::Matrix4x4::perspective(
-        math::Quaternion::degToRad(45.0f),
+    glm::perspective(
+        glm::radians(45.0f),
         static_cast<float>(width) / static_cast<float>(height),
         m_nearClip,
         m_farClip
     )
 },
-m_view {
-    math::Matrix4x4::translation(math::Vector3(0.0f, 0.0f, -30.0f))
-} {
-    m_view.inverse();
+m_view { glm::mat4x4(1.0f) } {
+
 }
 
 Frontend::~Frontend() {
@@ -42,8 +44,8 @@ Frontend::~Frontend() {
 }
 
 auto Frontend::onResized(const uint16_t width, const uint16_t height) -> void {
-    m_projection = math::Matrix4x4::perspective(
-        math::Quaternion::degToRad(45.0f),
+    m_projection = glm::perspective(
+        glm::radians(45.0f),
         static_cast<float>(width) / static_cast<float>(height),
         m_nearClip,
         m_farClip
@@ -58,21 +60,15 @@ auto Frontend::drawFrame(const Packet& packet) -> bool {
         m_backend->updateGlobalState(
             m_projection,
             m_view,
-            math::Vector3::zero(),
-            math::Vector4::one(),
+            glm::vec3(0.0f),
+            glm::vec4(1.0f),
             0
         );
 
         static float angle { 0.01f };
         angle += 0.001f;
-        const math::Quaternion rotation {
-            math::Vector3::forward(),
-            angle,
-            false
-        };
-        const math::Matrix4x4 model {
-            rotation, math::Vector3::zero()
-        };
+
+        const glm::mat4x4 model { glm::rotate(glm::mat4x4(1.0f), angle, glm::vec3(0.0f, 0.0f, -1.0f)) };
 
         m_backend->updateObject(model);
 
@@ -88,7 +84,7 @@ auto Frontend::drawFrame(const Packet& packet) -> bool {
     return true;
 }
 
-auto Frontend::setView(const math::Matrix4x4& view) -> void {
+auto Frontend::setView(const glm::mat4x4& view) -> void {
     m_view = view;
 }
 

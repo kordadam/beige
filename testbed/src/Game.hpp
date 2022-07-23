@@ -3,7 +3,6 @@
 #include <IGame.hpp>
 #include <core/Input.hpp>
 
-namespace bm = beige::math;
 namespace bc = beige::core;
 
 class Game final : public beige::IGame {

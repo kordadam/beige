@@ -22,7 +22,7 @@ public:
     auto onResized(const uint16_t width, const uint16_t height) -> void;
     auto drawFrame(const Packet& packet) -> bool;
 
-    auto setView(const math::Matrix4x4& view) -> void;
+    auto setView(const glm::mat4x4& view) -> void;
 
     auto createTexture(
         const std::string& name,
@@ -41,8 +41,8 @@ private:
 
     float m_nearClip;
     float m_farClip;
-    math::Matrix4x4 m_projection;
-    math::Matrix4x4 m_view;
+    glm::mat4x4 m_projection;
+    glm::mat4x4 m_view;
 
     auto beginFrame(const float deltaTime) -> bool;
     auto endFrame(const float deltaTime) -> bool;

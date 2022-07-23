@@ -31,16 +31,16 @@ public:
 
     auto beginFrame(const float deltaTime) -> bool override;
     auto updateGlobalState(
-        const math::Matrix4x4& projection,
-        const math::Matrix4x4& view,
-        const math::Vector3& viewPosition,
-        const math::Vector4& ambientColor,
+        const glm::mat4x4& projection,
+        const glm::mat4x4& view,
+        const glm::vec3& viewPosition,
+        const glm::vec4& ambientColor,
         const int32_t mode
     ) -> void override;
     auto endFrame(const float deltaTime) -> bool override;
 
     auto updateObject(
-        const math::Matrix4x4& model
+        const glm::mat4x4& model
     ) -> void override;
 
     auto createTexture(

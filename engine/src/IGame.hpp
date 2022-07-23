@@ -2,16 +2,20 @@
 
 #include "Defines.hpp"
 #include "core/AppTypes.hpp"
-#include "math/Math.hpp"
+
+#include <glm/glm.hpp>
 
 namespace beige {
 
 class BEIGE_API IGame {
 public:
     struct State {
-        math::Matrix4x4 view;
-        math::Vector3 cameraPosition;
-        math::Vector3 cameraEuler;
+        glm::mat4x4 view;
+        glm::vec3 cameraPosition;
+        glm::vec3 cameraEuler;
+        glm::vec3 cameraUp;
+        glm::vec3 cameraRight;
+        glm::vec3 cameraLook;
         bool cameraViewDirty;
     };
 

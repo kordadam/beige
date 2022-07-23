@@ -27,8 +27,8 @@ public:
     );
     ~ShaderObject();
 
-    auto setProjection(const math::Matrix4x4& projection) -> void;
-    auto setView(const math::Matrix4x4& view) -> void;
+    auto setProjection(const glm::mat4x4& projection) -> void;
+    auto setView(const glm::mat4x4& view) -> void;
 
     auto use(const VkCommandBuffer& commandBuffer) -> void;
 
@@ -38,7 +38,7 @@ public:
     ) -> void;
     auto updateObject(
         const VkCommandBuffer& commandBuffer,
-        const math::Matrix4x4& model
+        const glm::mat4x4& model
     ) -> void;
 
 private:

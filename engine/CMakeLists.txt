@@ -15,22 +15,6 @@ set(SRC
     src/core/InputTypes.hpp
     src/core/Logger.cpp
     src/core/Logger.hpp
-    src/math/Math.hpp
-    src/math/MathConstans.hpp
-    src/math/MathMatrix4x4.cpp
-    src/math/MathMatrix4x4.hpp
-    src/math/MathQuaternion.cpp
-    src/math/MathQuaternion.hpp
-    src/math/MathRandom.cpp
-    src/math/MathRandom.hpp
-    src/math/MathVector2.cpp
-    src/math/MathVector2.hpp
-    src/math/MathVector3.cpp
-    src/math/MathVector3.hpp
-    src/math/MathVector4.cpp
-    src/math/MathVector4.hpp
-    src/math/MathVertex3D.cpp
-    src/math/MathVertex3D.hpp
     src/platform/Platform.hpp
     src/platform/PlatformTypes.hpp
     src/platform/PlatformWin32.cpp
@@ -119,10 +103,13 @@ if(Vulkan_FOUND AND NOT TARGET Vulkan::Vulkan)
     )
 endif()
 
+add_subdirectory(src/external/glm)
+
 include_directories(
     ${VULKAN_INCLUDE_DIRS}
+    src/external/glm
 )
 add_definitions(-DBEIGE_EXPORT -DBEIGE_DEBUG)
 add_library(engine SHARED ${SRC})
-target_link_libraries(engine ${VULKAN_LIBRARIES})
+target_link_libraries(engine ${VULKAN_LIBRARIES} glm)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)

@@ -2,8 +2,8 @@
 
 #include "VulkanDefines.hpp"
 #include "VulkanUtils.hpp"
-#include "../../math/Math.hpp"
 
+#include <glm/glm.hpp>
 #include <array>
 
 namespace beige {
@@ -129,7 +129,7 @@ m_handle { VK_NULL_HANDLE } {
 
     const VkVertexInputBindingDescription vertexInputBindingDescription {
         0u,                         // binding
-        sizeof(math::Vertex3D),     // stride
+        sizeof(glm::vec3),          // stride
         VK_VERTEX_INPUT_RATE_VERTEX // inputRate
     };
 
@@ -153,9 +153,9 @@ m_handle { VK_NULL_HANDLE } {
 
     // Push constants.
     const VkPushConstantRange pushConstantRange {
-        VK_SHADER_STAGE_VERTEX_BIT,                          // stageFlags
-        static_cast<uint32_t>(sizeof(math::Matrix4x4)) * 0u, // offset
-        static_cast<uint32_t>(sizeof(math::Matrix4x4)) * 2u  // size
+        VK_SHADER_STAGE_VERTEX_BIT,                      // stageFlags
+        static_cast<uint32_t>(sizeof(glm::mat4x4)) * 0u, // offset
+        static_cast<uint32_t>(sizeof(glm::mat4x4)) * 2u  // size
     };
 
     const VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {

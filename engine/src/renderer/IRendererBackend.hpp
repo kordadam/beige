@@ -5,6 +5,7 @@
 #include "../resources/ITexture.hpp"
 #include "RendererTypes.hpp"
 
+#include <glm/glm.hpp>
 #include <string>
 
 namespace beige {
@@ -19,16 +20,16 @@ public:
 
     virtual auto beginFrame(const float deltaTime) -> bool = 0;
     virtual auto updateGlobalState(
-        const math::Matrix4x4& projection,
-        const math::Matrix4x4& view,
-        const math::Vector3& viewPosition,
-        const math::Vector4& ambientColor,
+        const glm::mat4x4& projection,
+        const glm::mat4x4& view,
+        const glm::vec3& viewPosition,
+        const glm::vec4& ambientColor,
         const int32_t mode
     ) -> void = 0;
     virtual auto endFrame(const float deltaTime) -> bool = 0;
 
     virtual auto updateObject(
-        const math::Matrix4x4& model
+        const glm::mat4x4& model
     ) -> void = 0;
 
     virtual auto createTexture(
