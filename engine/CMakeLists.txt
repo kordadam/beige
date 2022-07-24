@@ -15,6 +15,7 @@ set(SRC
     src/core/InputTypes.hpp
     src/core/Logger.cpp
     src/core/Logger.hpp
+    src/math/MathTypes.hpp
     src/platform/Platform.hpp
     src/platform/PlatformTypes.hpp
     src/platform/PlatformWin32.cpp

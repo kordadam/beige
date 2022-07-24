@@ -102,9 +102,9 @@ auto Game::onResize(const uint32_t width, const uint32_t height) -> void {
 auto Game::recalculateView() -> void {
     if (m_state.cameraViewDirty) {
         const glm::vec3 newLook {
-             std::cos(m_state.cameraEuler.x)* std::sin(m_state.cameraEuler.y),
+             std::cos(m_state.cameraEuler.x) * std::sin(m_state.cameraEuler.y),
              std::sin(m_state.cameraEuler.x),
-             std::cos(m_state.cameraEuler.x)* std::cos(m_state.cameraEuler.y)
+             std::cos(m_state.cameraEuler.x) * std::cos(m_state.cameraEuler.y)
         };
 
         m_state.cameraLook = glm::normalize(newLook);

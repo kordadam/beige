@@ -2,6 +2,7 @@
 
 #include "VulkanDefines.hpp"
 #include "VulkanUtils.hpp"
+#include "../../math/MathTypes.hpp"
 
 #include <glm/glm.hpp>
 #include <array>
@@ -129,7 +130,7 @@ m_handle { VK_NULL_HANDLE } {
 
     const VkVertexInputBindingDescription vertexInputBindingDescription {
         0u,                         // binding
-        sizeof(glm::vec3),          // stride
+        sizeof(math::Vertex3D),     // stride
         VK_VERTEX_INPUT_RATE_VERTEX // inputRate
     };
 

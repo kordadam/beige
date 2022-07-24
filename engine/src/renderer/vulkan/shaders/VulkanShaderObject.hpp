@@ -10,13 +10,33 @@
 
 #include <array>
 #include <string>
+#include <optional>
 
 namespace beige {
 namespace renderer {
 namespace vulkan {
 
 class ShaderObject final {
+private:
+    static constexpr uint32_t m_stageCount{ 2u };
+    static constexpr uint32_t m_descriptorCount{ 2u };
+    static constexpr uint32_t m_maxObjectCount{ 1024u };
+    static constexpr std::string_view m_builtinShaderName{ "Builtin.ObjectShader" };
+
 public:
+    struct DescriptorState {
+        // One per frame.
+        std::array<uint32_t, 3u> generations;
+    };
+
+    struct ObjectState {
+        // Per frame.
+        std::array<VkDescriptorSet, 3u> descriptorSets;
+
+        // Per descriptor.
+        std::array<DescriptorState, m_descriptorCount> descriptorStates;
+    };
+
     ShaderObject(
         VkAllocationCallbacks* allocationCallbacks,
         std::shared_ptr<Device> device,
@@ -34,12 +54,17 @@ public:
 
     auto updateGlobalState(
         const uint32_t imageIndex,
-        const VkCommandBuffer& commandBuffer
+        const VkCommandBuffer& commandBuffer,
+        const float deltaTime
     ) -> void;
     auto updateObject(
         const VkCommandBuffer& commandBuffer,
-        const glm::mat4x4& model
+        const uint32_t imageIndex,
+        const GeometryRenderData& geometryRenderData,
+        const float deltaTime // TODO: Temporary.
     ) -> void;
+    auto acquireResources() -> std::optional<ObjectId>;
+    auto releaseResources(const ObjectId objectId) -> void;
 
 private:
     struct Stage {
@@ -47,9 +72,6 @@ private:
         VkShaderModule shaderModule;
         VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo;
     };
-
-    static constexpr uint32_t m_stageCount { 2u };
-    static constexpr std::string_view m_builtinShaderName { "Builtin.ObjectShader" };
 
     VkAllocationCallbacks* m_allocationCallbacks;
     std::shared_ptr<Device> m_device;
@@ -69,6 +91,16 @@ private:
 
     // Global uniform buffer.
     std::unique_ptr<Buffer> m_globalUniformBuffer;
+
+    VkDescriptorPool m_objectDescriptorPool;
+    VkDescriptorSetLayout m_objectDescriptorSetLayout;
+    // Object uniform buffers.
+    std::unique_ptr<Buffer> m_objectUniformBuffer;
+    // TODO: Manage a free list of some kind here instead.
+    uint32_t m_objectUniformBufferIndex;
+
+    // TODO: Make dynamic.
+    std::array<ObjectState, m_maxObjectCount> m_objectStates;
 
     std::unique_ptr<Pipeline> m_pipeline;
 

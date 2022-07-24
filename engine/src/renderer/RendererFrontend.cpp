@@ -35,7 +35,8 @@ m_projection {
         m_farClip
     )
 },
-m_view { glm::mat4x4(1.0f) } {
+m_view { glm::mat4x4(1.0f) },
+m_defaultTexture { m_backend->createDefaultTexture() } {
 
 }
 
@@ -68,9 +69,13 @@ auto Frontend::drawFrame(const Packet& packet) -> bool {
         static float angle { 0.01f };
         angle += 0.001f;
 
-        const glm::mat4x4 model { glm::rotate(glm::mat4x4(1.0f), angle, glm::vec3(0.0f, 0.0f, -1.0f)) };
+        const GeometryRenderData geometryRenderData {
+            0u, // TODO: Actual objectId;
+            glm::rotate(glm::mat4x4(1.0f), angle, glm::vec3(0.0f, 0.0f, -1.0f)),
+            { m_defaultTexture }
+        };
 
-        m_backend->updateObject(model);
+        m_backend->updateObject(geometryRenderData);
 
         // End the frame. if this fails, it is likely unrecoverable.
         const bool result { endFrame(packet.deltaTime) };

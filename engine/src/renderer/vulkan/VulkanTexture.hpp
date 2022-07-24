@@ -23,6 +23,9 @@ public:
     );
     ~Texture();
 
+    auto getImageView() const -> const VkImageView&;
+    auto getSampler() const -> const VkSampler&;
+
 private:
     VkAllocationCallbacks* m_allocationCallbacks;
     std::shared_ptr<Device> m_device;

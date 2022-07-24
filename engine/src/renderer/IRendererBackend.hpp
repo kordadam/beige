@@ -29,7 +29,7 @@ public:
     virtual auto endFrame(const float deltaTime) -> bool = 0;
 
     virtual auto updateObject(
-        const glm::mat4x4& model
+        const GeometryRenderData& geometryRenderData
     ) -> void = 0;
 
     virtual auto createTexture(
@@ -42,6 +42,7 @@ public:
         const bool hasTransparency
     ) -> std::shared_ptr<resources::ITexture> = 0;
     virtual auto destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void = 0;
+    virtual auto createDefaultTexture() -> std::shared_ptr<resources::ITexture> = 0;
 };
 
 } // namespace renderer

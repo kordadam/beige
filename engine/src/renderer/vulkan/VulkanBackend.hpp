@@ -40,7 +40,7 @@ public:
     auto endFrame(const float deltaTime) -> bool override;
 
     auto updateObject(
-        const glm::mat4x4& model
+        const GeometryRenderData& geometryRenderData
     ) -> void override;
 
     auto createTexture(
@@ -53,9 +53,12 @@ public:
         const bool hasTransparency
     ) -> std::shared_ptr<resources::ITexture> override;
     auto destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void override;
+    auto createDefaultTexture() -> std::shared_ptr<resources::ITexture> override;
 
 private:
     std::shared_ptr<platform::Platform> m_platform;
+
+    float m_frameDeltaTime;
 
     uint32_t m_framebufferWidth;
     uint32_t m_framebufferHeight;

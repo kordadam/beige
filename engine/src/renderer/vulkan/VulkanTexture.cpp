@@ -149,6 +149,8 @@ m_device { device } {
 }
 
 Texture::~Texture() {
+    vkDeviceWaitIdle(m_device->getLogicalDevice());
+
     m_image.reset();
 
     vkDestroySampler(
@@ -158,6 +160,13 @@ Texture::~Texture() {
     );
 }
 
+auto Texture::getImageView() const -> const VkImageView& {
+    return m_image->getImageView();
+}
+
+auto Texture::getSampler() const -> const VkSampler& {
+    return m_sampler;
+}
 
 } // namespace vulkan
 } // namespace renderer

@@ -3,6 +3,7 @@
 #include "../../core/Logger.hpp"
 #include "VulkanDefines.hpp"
 #include "VulkanUtils.hpp"
+#include "../../math/MathTypes.hpp"
 
 #include <algorithm>
 #include <array>
@@ -20,6 +21,7 @@ Backend::Backend(
 ) :
 IBackend { },
 m_platform { platform },
+m_frameDeltaTime { 0.0f },
 m_framebufferWidth { width },
 m_framebufferHeight { height },
 m_framebufferSizeGeneration { 0u },
@@ -296,12 +298,19 @@ m_geometryIndexOffset { 0u } {
     const float f { 10.0f };
 
     // TODO: Temporary test code
-    std::array<glm::vec3, 4u> verts {
-        glm::vec3(-0.5f * f, -0.5f * f, 0.0f),
-        glm::vec3(0.5f * f, 0.5f * f, 0.0f),
-        glm::vec3(-0.5f * f, 0.5f * f, 0.0f),
-        glm::vec3(0.5f * f, -0.5f * f, 0.0f)
-    };
+    std::array<math::Vertex3D, 4u> verts { };
+
+    verts.at(0u).position = glm::vec3(-0.5f * f, -0.5f * f, 0.0f);
+    verts.at(0u).texCoord = glm::vec2(0.0f, 0.0f);
+
+    verts.at(1u).position = glm::vec3(0.5f * f, 0.5f * f, 0.0f);
+    verts.at(1u).texCoord = glm::vec2(1.0f, 1.0f);
+
+    verts.at(2u).position = glm::vec3(-0.5f * f, 0.5f * f, 0.0f);
+    verts.at(2u).texCoord = glm::vec2(0.0f, 1.0f);
+
+    verts.at(3u).position = glm::vec3(0.5f * f, -0.5f * f, 0.0f);
+    verts.at(3u).texCoord = glm::vec2(1.0f, 0.0f);
 
     std::array<uint32_t, 6u> indices {
         0u, 1u, 2u, 0u, 3u, 1u
@@ -313,7 +322,7 @@ m_geometryIndexOffset { 0u } {
         m_device->getGraphicsQueue(),
         m_objectVertexBuffer->getHandle(),
         0u,
-        sizeof(glm::vec3) * verts.size(),
+        static_cast<uint64_t>(sizeof(math::Vertex3D) * verts.size()),
         verts.data()
     );
 
@@ -326,6 +335,16 @@ m_geometryIndexOffset { 0u } {
         sizeof(uint32_t) * indices.size(),
         indices.data()
     );
+
+    const std::optional<ObjectId> objectId {
+        m_shaderObject->acquireResources()
+    };
+
+    if (!objectId.has_value()) {
+        const std::string message{ "Failed to acquire shader resources!" };
+        throw std::exception(message.c_str());
+    }
+
     // TODO: End temporary test code
 
     core::Logger::info("Vulkan renderer initialized successfully!");
@@ -436,6 +455,7 @@ auto Backend::onResized(const uint16_t width, const uint16_t height) -> void {
 }
 
 auto Backend::beginFrame(const float deltaTime) -> bool {
+    m_frameDeltaTime = deltaTime;
     const VkDevice logicalDevice { m_device->getLogicalDevice() };
 
     // Check if recreating swapchain and boot out
@@ -556,7 +576,7 @@ auto Backend::updateGlobalState(
 
     // TODO: Other uniform object properties.
 
-    m_shaderObject->updateGlobalState(m_imageIndex, graphicsCommandBufferHandle);
+    m_shaderObject->updateGlobalState(m_imageIndex, graphicsCommandBufferHandle, m_frameDeltaTime);
 }
 
 auto Backend::endFrame(const float deltaTime) -> bool {
@@ -635,11 +655,13 @@ auto Backend::endFrame(const float deltaTime) -> bool {
 }
 
 auto Backend::updateObject(
-    const glm::mat4x4& model
+    const GeometryRenderData& geometryRenderData
 ) -> void {
     m_shaderObject->updateObject(
         m_graphicsCommandBuffers.at(m_imageIndex)->getHandle(),
-        model
+        m_imageIndex,
+        geometryRenderData,
+        m_frameDeltaTime
     );
 
     // TODO: Temporary test code
@@ -683,6 +705,51 @@ auto Backend::createTexture(
 
 auto Backend::destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void {
 
+}
+
+auto Backend::createDefaultTexture() -> std::shared_ptr<resources::ITexture> {
+    // NOTE: Create default texture, a 256x256 blue/white checkerboard pattern.
+    // This is done in code to eliminate asset dependecies.
+    core::Logger::trace("Creating default texture...");
+    const uint32_t textureDimension { 256u };
+    const uint32_t channels { 4u };
+    const uint32_t pixelCount { textureDimension * textureDimension };
+    std::vector<std::byte> pixels { pixelCount * channels, std::byte(0xFF) };
+
+    // Each pixel.
+    for (uint32_t row { 0u }; row < textureDimension; row++) {
+        for (uint32_t col { 0u }; col < textureDimension; col++) {
+            const uint32_t index { row * textureDimension + col };
+            const uint32_t indexChannel { index * channels };
+            if (row % 2u) {
+                if (col % 2u) {
+                    pixels.at(indexChannel + 0u) = std::byte(0x00);
+                    pixels.at(indexChannel + 1u) = std::byte(0x00);
+                }
+            } else {
+                if (!(col % 2u)) {
+                    pixels.at(indexChannel + 0u) = std::byte(0x00);
+                    pixels.at(indexChannel + 1u) = std::byte(0x00);
+                }
+            }
+        }
+    }
+
+    std::shared_ptr<Texture> defaultTexture {
+        std::make_shared<Texture>(
+            "default",
+            false,
+            static_cast<int32_t>(textureDimension),
+            static_cast<int32_t>(textureDimension),
+            static_cast<int32_t>(channels),
+            pixels,
+            false,
+            m_allocationCallbacks,
+            m_device
+        )
+    };
+
+    return defaultTexture;
 }
 
 auto Backend::regenerateFramebuffers() -> void {

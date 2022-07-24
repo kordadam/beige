@@ -2,9 +2,11 @@
 
 #include "RendererTypes.hpp"
 #include "IRendererBackend.hpp"
+#include "../resources/ITexture.hpp"
 
 #include <cstdint>
 #include <memory>
+#include <array>
 
 namespace beige {
 namespace renderer {
@@ -43,6 +45,8 @@ private:
     float m_farClip;
     glm::mat4x4 m_projection;
     glm::mat4x4 m_view;
+
+    std::shared_ptr<resources::ITexture> m_defaultTexture;
 
     auto beginFrame(const float deltaTime) -> bool;
     auto endFrame(const float deltaTime) -> bool;
