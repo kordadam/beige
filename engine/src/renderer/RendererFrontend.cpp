@@ -7,13 +7,6 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-// TODO: Temporary
-#include "../core/Input.hpp"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "../external/stb/stb_image.h"
-// TODO: End temporary
-
 #include <iostream>
 
 namespace beige {
@@ -45,18 +38,12 @@ m_projection {
     )
 },
 m_view { glm::mat4x4(1.0f) },
-m_defaultTexture { nullptr },
-m_testDiffuse { nullptr } {
-    m_defaultTexture = m_backend->createDefaultTexture();
-    m_testDiffuse = m_backend->createDefaultTexture();
+m_testDiffuse { } {
 
-    // Manually set the texture generation to invalind since this is a default texture.
-    m_defaultTexture->setGeneration(resources::global_invalidTextureGeneration);
 }
 
 Frontend::~Frontend() {
-    m_testDiffuse.reset();
-    m_defaultTexture.reset();
+
 }
 
 auto Frontend::onResized(const uint16_t width, const uint16_t height) -> void {
@@ -118,96 +105,22 @@ auto Frontend::endFrame(const float deltaTime) -> bool {
     return result;
 }
 
-auto Frontend::loadTexture(
-    const std::string& textureName,
-    std::shared_ptr<resources::ITexture>& texture
-) -> bool {
-    // TODO: Should be able to be located anywhere.
-    const int32_t requiredChannelCount { 4 };
-
-    stbi_set_flip_vertically_on_load(true);
-
-    // TODO: Try different extensions.
-    const std::string filePath { "assets/textures/" + textureName + ".png" };
-
-    int32_t width { 0 };
-    int32_t height { 0 };
-    int32_t channelCount { 0 };
-
-    stbi_uc* data {
-        stbi_load(
-            filePath.c_str(),
-            &width,
-            &height,
-            &channelCount,
-            requiredChannelCount
-        )
-    };
-
-    if (data != nullptr) {
-
-        const resources::TextureGeneration currentGeneration {
-            texture->getGeneration()
-        };
-
-        texture->setGeneration(resources::global_invalidTextureGeneration);
-
-        const uint64_t totalSize {
-            static_cast<uint64_t>(width * height * requiredChannelCount)
-        };
-
-        // Check for transparency.
-        bool hasTransparency { false };
-        for (uint64_t i { 0u }; i < totalSize; i += requiredChannelCount) {
-            stbi_uc a { data[i + 3u] };
-            if (a < 0xFFu) {
-                hasTransparency = true;
-                break;
-            }
-        }
-
-        if (stbi_failure_reason() != nullptr) {
-            const std::string message { "Loading texture failed to load file " + filePath + ": " + stbi_failure_reason() + "!" };
-            core::Logger::warn(message);
-        }
-
-        // Acquire internal texture resources and upload to GPU.
-        std::shared_ptr<resources::ITexture> temporaryTexture {
-            m_backend->createTexture(
-                textureName,
-                true,
-                width,
-                height,
-                requiredChannelCount,
-                data,
-                hasTransparency
-            )
-        };
-
-        // Destroy the old texture.
-        texture.reset();
-
-        // Assign the temporary texture to the pointer.
-        texture = temporaryTexture;
-
-        if (currentGeneration == resources::global_invalidTextureGeneration) {
-            texture->setGeneration(0u);
-        } else {
-            texture->setGeneration(currentGeneration + 1u);
-        }
-
-        // Clean up data.
-        stbi_image_free(data);
-
-        return true;
-    } else {
-        if (stbi_failure_reason() != nullptr) {
-            const std::string message { "Loading texture failed to load file " + filePath + ": " + stbi_failure_reason() + "!" };
-            core::Logger::warn(message);
-        }
-
-        return false;
-    }
+auto Frontend::createTexture(
+    const std::string& name,
+    const int32_t width,
+    const int32_t height,
+    const int32_t channelCount,
+    const void* pixels,
+    const bool hasTransparency
+) -> std::shared_ptr<resources::ITexture> {
+    return m_backend->createTexture(
+        name,
+        width,
+        height,
+        channelCount,
+        pixels,
+        hasTransparency
+    );
 }
 
 } // namespace renderer

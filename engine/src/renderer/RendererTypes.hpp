@@ -11,10 +11,6 @@
 namespace beige {
 namespace renderer {
 
-using ObjectId = uint32_t;
-
-inline constexpr ObjectId invalidObjectId { static_cast<ObjectId>(-1) };
-
 struct Packet {
     float deltaTime;
 };
@@ -34,7 +30,7 @@ struct ObjectUniformObject {
 };
 
 struct GeometryRenderData {
-    ObjectId objectId;
+    resources::ObjectId objectId;
     glm::mat4x4 model;
     std::array<std::shared_ptr<resources::ITexture>, 16u> textures;
 };

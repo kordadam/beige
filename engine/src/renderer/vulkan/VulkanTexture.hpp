@@ -12,7 +12,6 @@ class Texture final : public resources::ITexture {
 public:
     Texture(
         const std::string& name,
-        const bool autoRelease,
         const int32_t width,
         const int32_t height,
         const int32_t channelCount,

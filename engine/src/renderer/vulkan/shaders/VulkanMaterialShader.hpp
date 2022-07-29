@@ -18,17 +18,18 @@ namespace beige {
 namespace renderer {
 namespace vulkan {
 
-class ShaderObject final {
+class MaterialShader final {
 private:
-    static constexpr uint32_t m_stageCount{ 2u };
-    static constexpr uint32_t m_descriptorCount{ 2u };
-    static constexpr uint32_t m_maxObjectCount{ 1024u };
-    static constexpr std::string_view m_builtinShaderName{ "Builtin.ObjectShader" };
+    static constexpr uint32_t m_stageCount { 2u };
+    static constexpr uint32_t m_descriptorCount { 2u };
+    static constexpr uint32_t m_maxObjectCount { 1024u };
+    static constexpr std::string_view m_builtinMaterialShaderName { "Builtin.MaterialShader" };
 
 public:
     struct DescriptorState {
         // One per frame.
         std::array<uint32_t, 3u> generations;
+        std::array<uint32_t, 3u> ids;
     };
 
     struct ObjectState {
@@ -39,16 +40,15 @@ public:
         std::array<DescriptorState, m_descriptorCount> descriptorStates;
     };
 
-    ShaderObject(
+    MaterialShader(
         VkAllocationCallbacks* allocationCallbacks,
         std::shared_ptr<Device> device,
         std::shared_ptr<RenderPass> renderPass,
         std::shared_ptr<Swapchain> swapchain,
         const uint32_t framebufferWidth,
-        const uint32_t framebufferHeight,
-        std::shared_ptr<Texture> defaultDiffuse
+        const uint32_t framebufferHeight
     );
-    ~ShaderObject();
+    ~MaterialShader();
 
     auto setProjection(const glm::mat4x4& projection) -> void;
     auto setView(const glm::mat4x4& view) -> void;
@@ -66,8 +66,8 @@ public:
         const GeometryRenderData& geometryRenderData,
         const float deltaTime // TODO: Temporary.
     ) -> void;
-    auto acquireResources() -> std::optional<ObjectId>;
-    auto releaseResources(const ObjectId objectId) -> void;
+    auto acquireResources() -> std::optional<resources::ObjectId>;
+    auto releaseResources(const resources::ObjectId objectId) -> void;
 
 private:
     struct Stage {
@@ -104,9 +104,6 @@ private:
 
     // TODO: Make dynamic.
     std::array<ObjectState, m_maxObjectCount> m_objectStates;
-
-    // TODO: Pointers to default textures.
-    std::shared_ptr<Texture> m_defaultDiffuse;
 
     std::unique_ptr<Pipeline> m_pipeline;
 

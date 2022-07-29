@@ -42,7 +42,7 @@ m_objectVertexBuffer { nullptr },
 m_objectIndexBuffer { nullptr },
 m_imageIndex { 0u },
 m_graphicsCommandBuffers { },
-m_shaderObject { },
+m_materialShader { nullptr },
 m_imageAvailableSemaphores { },
 m_queueCompleteSemaphores { },
 m_inFlightFences { },
@@ -284,16 +284,13 @@ m_geometryIndexOffset { 0u } {
     // Actual fences are not owned by this list
     m_imagesInFlight.resize(static_cast<uint32_t>(m_swapchain->getImages().size()), nullptr);
 
-    m_defaultDiffuse = createDefaultTexture();
-
-    m_shaderObject = std::make_shared<ShaderObject>(
+    m_materialShader = std::make_shared<MaterialShader>(
         m_allocationCallbacks,
         m_device,
         m_mainRenderPass,
         m_swapchain,
         m_framebufferWidth,
-        m_framebufferHeight,
-        std::dynamic_pointer_cast<Texture>(m_defaultDiffuse)
+        m_framebufferHeight
     );
 
     createBuffers();
@@ -339,8 +336,8 @@ m_geometryIndexOffset { 0u } {
         indices.data()
     );
 
-    const std::optional<ObjectId> objectId {
-        m_shaderObject->acquireResources()
+    const std::optional<resources::ObjectId> objectId {
+        m_materialShader->acquireResources()
     };
 
     if (!objectId.has_value()) {
@@ -362,10 +359,8 @@ Backend::~Backend() {
     m_objectIndexBuffer.reset();
     m_objectVertexBuffer.reset();
 
-    core::Logger::info("Destroying shader object...");
-    m_shaderObject.reset();
-
-    m_defaultDiffuse.reset();
+    core::Logger::info("Destroying material shader...");
+    m_materialShader.reset();
 
     core::Logger::info("Destroying images in-flight...");
     m_imagesInFlight.clear();
@@ -575,13 +570,13 @@ auto Backend::updateGlobalState(
 ) -> void {
     const VkCommandBuffer graphicsCommandBufferHandle { m_graphicsCommandBuffers.at(m_imageIndex)->getHandle() };
 
-    m_shaderObject->use(graphicsCommandBufferHandle);
-    m_shaderObject->setProjection(projection);
-    m_shaderObject->setView(view);
+    m_materialShader->use(graphicsCommandBufferHandle);
+    m_materialShader->setProjection(projection);
+    m_materialShader->setView(view);
 
     // TODO: Other uniform object properties.
 
-    m_shaderObject->updateGlobalState(m_imageIndex, graphicsCommandBufferHandle, m_frameDeltaTime);
+    m_materialShader->updateGlobalState(m_imageIndex, graphicsCommandBufferHandle, m_frameDeltaTime);
 }
 
 auto Backend::endFrame(const float deltaTime) -> bool {
@@ -662,7 +657,7 @@ auto Backend::endFrame(const float deltaTime) -> bool {
 auto Backend::updateObject(
     const GeometryRenderData& geometryRenderData
 ) -> void {
-    m_shaderObject->updateObject(
+    m_materialShader->updateObject(
         m_graphicsCommandBuffers.at(m_imageIndex)->getHandle(),
         m_imageIndex,
         geometryRenderData,
@@ -672,7 +667,7 @@ auto Backend::updateObject(
     // TODO: Temporary test code
     const VkCommandBuffer graphicsCommandBufferHandle { m_graphicsCommandBuffers.at(m_imageIndex)->getHandle() };
 
-    m_shaderObject->use(graphicsCommandBufferHandle);
+    m_materialShader->use(graphicsCommandBufferHandle);
 
     // Bind vertex buffer and offset.
     const std::array<VkDeviceSize, 1u> offsets{ 0u };
@@ -688,7 +683,6 @@ auto Backend::updateObject(
 
 auto Backend::createTexture(
     const std::string& name,
-    const bool autoRelease,
     const int32_t width,
     const int32_t height,
     const int32_t channelCount,
@@ -697,7 +691,6 @@ auto Backend::createTexture(
 ) -> std::shared_ptr<resources::ITexture> {
     return std::make_shared<Texture>(
         name,
-        autoRelease,
         width,
         height,
         channelCount,
@@ -706,55 +699,6 @@ auto Backend::createTexture(
         m_allocationCallbacks,
         m_device
     );
-}
-
-auto Backend::destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void {
-
-}
-
-auto Backend::createDefaultTexture() -> std::shared_ptr<resources::ITexture> {
-    // NOTE: Create default texture, a 256x256 blue/white checkerboard pattern.
-    // This is done in code to eliminate asset dependecies.
-    core::Logger::trace("Creating default texture...");
-    const uint32_t textureDimension { 256u };
-    const uint32_t channels { 4u };
-    const uint32_t pixelCount { textureDimension * textureDimension };
-    std::vector<std::byte> pixels { pixelCount * channels, std::byte(0xFF) };
-
-    // Each pixel.
-    for (uint32_t row { 0u }; row < textureDimension; row++) {
-        for (uint32_t col { 0u }; col < textureDimension; col++) {
-            const uint32_t index { row * textureDimension + col };
-            const uint32_t indexChannel { index * channels };
-            if (row % 2u) {
-                if (col % 2u) {
-                    pixels.at(indexChannel + 0u) = std::byte(0x00);
-                    pixels.at(indexChannel + 1u) = std::byte(0x00);
-                }
-            } else {
-                if (!(col % 2u)) {
-                    pixels.at(indexChannel + 0u) = std::byte(0x00);
-                    pixels.at(indexChannel + 1u) = std::byte(0x00);
-                }
-            }
-        }
-    }
-
-    std::shared_ptr<Texture> defaultTexture {
-        std::make_shared<Texture>(
-            "default",
-            false,
-            static_cast<int32_t>(textureDimension),
-            static_cast<int32_t>(textureDimension),
-            static_cast<int32_t>(channels),
-            pixels.data(),
-            false,
-            m_allocationCallbacks,
-            m_device
-        )
-    };
-
-    return defaultTexture;
 }
 
 auto Backend::regenerateFramebuffers() -> void {

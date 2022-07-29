@@ -26,16 +26,18 @@ public:
 
     auto setView(const glm::mat4x4& view) -> void;
 
-    // TODO: Temporary public.
     // TODO: Temporary.
     std::shared_ptr<resources::ITexture> m_testDiffuse;
     // TODO: End temporary.
 
-    auto loadTexture(
-        const std::string& textureName,
-        std::shared_ptr<resources::ITexture>& texture
-    ) -> bool;
-    // TODO: End temporary public.
+    auto createTexture(
+        const std::string& name,
+        const int32_t width,
+        const int32_t height,
+        const int32_t channelCount,
+        const void* pixels,
+        const bool hasTransparency
+    ) -> std::shared_ptr<resources::ITexture>;
 
 private:
     std::unique_ptr<IBackend> m_backend;
@@ -45,8 +47,6 @@ private:
     float m_farClip;
     glm::mat4x4 m_projection;
     glm::mat4x4 m_view;
-
-    std::shared_ptr<resources::ITexture> m_defaultTexture;
 
     auto beginFrame(const float deltaTime) -> bool;
     auto endFrame(const float deltaTime) -> bool;

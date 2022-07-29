@@ -10,7 +10,7 @@
 #include "VulkanFence.hpp"
 #include "VulkanBuffer.hpp"
 #include "VulkanTexture.hpp"
-#include "shaders/VulkanShaderObject.hpp"
+#include "shaders/VulkanMaterialShader.hpp"
 #include "../../resources/ITexture.hpp"
 
 namespace beige {
@@ -45,15 +45,12 @@ public:
 
     auto createTexture(
         const std::string& name,
-        const bool autoRelease,
         const int32_t width,
         const int32_t height,
         const int32_t channelCount,
         const void* pixels,
         const bool hasTransparency
     ) -> std::shared_ptr<resources::ITexture> override;
-    auto destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void override;
-    auto createDefaultTexture() -> std::shared_ptr<resources::ITexture> override;
 
 private:
     std::shared_ptr<platform::Platform> m_platform;
@@ -84,7 +81,7 @@ private:
     uint32_t m_imageIndex;
     std::vector<std::shared_ptr<Framebuffer>> m_framebuffers; // Framebuffers used for on-screen rendering
     std::vector<std::shared_ptr<CommandBuffer>> m_graphicsCommandBuffers;
-    std::shared_ptr<ShaderObject> m_shaderObject;
+    std::shared_ptr<MaterialShader> m_materialShader;
 
     std::vector<VkSemaphore> m_imageAvailableSemaphores;
     std::vector<VkSemaphore> m_queueCompleteSemaphores;

@@ -17,13 +17,14 @@ m_input { Input::getInstance() },
 m_platform { std::make_shared<platform::Platform>(game->getAppConfig()) },
 m_clock { std::make_unique<Clock>(m_platform) },
 m_rendererFrontend {
-    std::make_unique<renderer::Frontend>(
+    std::make_shared<renderer::Frontend>(
         game->getAppConfig().name,
         m_windowWidth,
         m_windowHeight,
         m_platform
     )
 },
+m_textureSystem { std::make_unique<systems::Texture>(m_rendererFrontend) },
 m_game { std::move(game) } {
     m_keyEventSubscriptions.push_back(
         m_input->KeyEvent::subscribe(
@@ -155,34 +156,51 @@ auto App::run() -> bool {
                 break;
             }
 
-            // HACK
+            // HACK.
             m_rendererFrontend->setView(m_game->getState().view);
-
-            static uint32_t currentTextureIndex = 0u;
-            if (m_game->getState().textureIndex == 1u && currentTextureIndex != 1u) {
-                currentTextureIndex = 1u;
-                m_rendererFrontend->loadTexture("wall", m_rendererFrontend->m_testDiffuse);
-            } else if (m_game->getState().textureIndex == 2u && currentTextureIndex != 2u) {
-                currentTextureIndex = 2u;
-                m_rendererFrontend->loadTexture("grass", m_rendererFrontend->m_testDiffuse);
-            } else if (m_game->getState().textureIndex == 3u && currentTextureIndex != 3u) {
-                currentTextureIndex = 3u;
-                m_rendererFrontend->loadTexture("dirt", m_rendererFrontend->m_testDiffuse);
-            }
 
             if (!m_game->render(static_cast<float>(deltaTime))) {
                 Logger::fatal("Game render failed, shutting down!");
                 break;
             }
 
-            // TODO: Refactor packet creation
+            // TODO: Refactor packet creation.
             const renderer::Packet packet {
                 deltaTime
             };
 
+            // TODO: Temporary.
+            static uint32_t currentTextureIndex = 0u;
+            static std::string previousTextureName = "default";
+            if (m_game->getState().textureIndex == 1u && currentTextureIndex != 1u) {
+                currentTextureIndex = 1u;
+                m_rendererFrontend->m_testDiffuse = m_textureSystem->acquire("wall", true);
+                //m_textureSystem->release(previousTextureName);
+                previousTextureName = "wall";
+            }
+            else if (m_game->getState().textureIndex == 2u && currentTextureIndex != 2u) {
+                currentTextureIndex = 2u;
+                m_rendererFrontend->m_testDiffuse = m_textureSystem->acquire("grass", true);
+                //m_textureSystem->release(previousTextureName);
+                previousTextureName = "grass";
+            }
+            else if (m_game->getState().textureIndex == 3u && currentTextureIndex != 3u) {
+
+                currentTextureIndex = 3u;
+                m_rendererFrontend->m_testDiffuse = m_textureSystem->acquire("dirt", true);
+                //m_textureSystem->release(previousTextureName);
+                previousTextureName = "dirt";
+            }
+
+            if (m_rendererFrontend->m_testDiffuse == nullptr) {
+                m_rendererFrontend->m_testDiffuse = m_textureSystem->getDefaultTexture();
+            }
+
+            // TODO: End temporary.
+
             m_rendererFrontend->drawFrame(packet);
 
-            // Figure out how long the frame took and, if below
+            // Figure out how long the frame took and, if below.
             const double frameEndTime { m_platform->getAbsoluteTime() };
             const double frameElapsedTime { frameEndTime - frameStartTime };
             const double remainingInS { targetFrameInSeconds - frameElapsedTime};
@@ -201,6 +219,9 @@ auto App::run() -> bool {
             m_lastTime = currentTime;
         }
     }
+
+    // BEIGE NOTE: Unset test texture pointer to allow texture system destroy all textures before Vulkan instance.
+    m_rendererFrontend->m_testDiffuse = nullptr;
 
     return true;
 }

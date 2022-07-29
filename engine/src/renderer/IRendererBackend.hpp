@@ -35,18 +35,12 @@ public:
 
     virtual auto createTexture(
         const std::string& name,
-        const bool autoRelease,
         const int32_t width,
         const int32_t height,
         const int32_t channelCount,
         const void* pixels,
         const bool hasTransparency
     ) -> std::shared_ptr<resources::ITexture> = 0;
-    virtual auto destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void = 0;
-    virtual auto createDefaultTexture() -> std::shared_ptr<resources::ITexture> = 0;
-
-protected:
-    std::shared_ptr<resources::ITexture> m_defaultDiffuse;
 };
 
 } // namespace renderer

@@ -348,8 +348,8 @@ auto Device::selectPhysicalDevice(
         for (const VkMemoryType& memoryType : physicalDeviceMemoryProperties.memoryTypes) {
             // Check each memory type to see if its bit is set to 1.
             if (
-                (memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT != 0u) &&
-                (memoryType.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT != 0u)
+                ((memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0u) &&
+                ((memoryType.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0u)
             ) {
                 m_supportsDeviceLocalHostVisible = true;
                 break;

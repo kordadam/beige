@@ -1,4 +1,4 @@
-#include "VulkanShaderObject.hpp"
+#include "VulkanMaterialShader.hpp"
 
 #include "../../../core/Logger.hpp"
 #include "../VulkanDefines.hpp"
@@ -14,14 +14,13 @@ namespace beige {
 namespace renderer {
 namespace vulkan {
 
-ShaderObject::ShaderObject(
+MaterialShader::MaterialShader(
     VkAllocationCallbacks* allocationCallbacks,
     std::shared_ptr<Device> device,
     std::shared_ptr<RenderPass> renderPass,
     std::shared_ptr<Swapchain> swapchain,
     const uint32_t framebufferWidth,
-    const uint32_t framebufferHeight,
-    std::shared_ptr<Texture> defaultDiffuse
+    const uint32_t framebufferHeight
 ) :
 m_allocationCallbacks { allocationCallbacks },
 m_device { device },
@@ -38,7 +37,6 @@ m_objectDescriptorSetLayout { VK_NULL_HANDLE },
 m_objectUniformBuffer { nullptr },
 m_objectUniformBufferIndex { 0u },
 m_objectStates { },
-m_defaultDiffuse { defaultDiffuse },
 m_pipeline { nullptr } {
     // Shader module initialization per stage.
     const std::array<std::string, m_stageCount> shaderTypeStrings { "vert", "frag" };
@@ -48,9 +46,9 @@ m_pipeline { nullptr } {
     };
 
     for (uint32_t i { 0u }; i < m_stageCount; i++) {
-        if (!createShaderModule(m_stages.at(i), m_builtinShaderName.data(), shaderTypeStrings.at(i), shaderTypeStageFlagBits.at(i))) {
+        if (!createShaderModule(m_stages.at(i), m_builtinMaterialShaderName.data(), shaderTypeStrings.at(i), shaderTypeStageFlagBits.at(i))) {
             const std::string message {
-                "Unable to create " + shaderTypeStrings.at(i) + " shader module for " + m_builtinShaderName.data() + "!"
+                "Unable to create " + shaderTypeStrings.at(i) + " shader module for " + m_builtinMaterialShaderName.data() + "!"
             };
 
             throw std::exception(message.c_str());
@@ -330,7 +328,7 @@ m_pipeline { nullptr } {
     );
 }
 
-ShaderObject::~ShaderObject() {
+MaterialShader::~MaterialShader() {
     const VkDevice logicalDevice { m_device->getLogicalDevice() };
 
     // Destroy object descriptor pool.
@@ -384,20 +382,20 @@ ShaderObject::~ShaderObject() {
     );
 }
 
-auto ShaderObject::setProjection(const glm::mat4x4& projection) -> void {
+auto MaterialShader::setProjection(const glm::mat4x4& projection) -> void {
     m_globalUniformObject.projection = projection;
 }
 
-auto ShaderObject::setView(const glm::mat4x4& view) -> void {
+auto MaterialShader::setView(const glm::mat4x4& view) -> void {
     m_globalUniformObject.view = view;
 }
 
-auto ShaderObject::use(const VkCommandBuffer& commandBuffer) -> void {
+auto MaterialShader::use(const VkCommandBuffer& commandBuffer) -> void {
     m_pipeline->bind(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS);
 }
 
 
-auto ShaderObject::updateGlobalState(
+auto MaterialShader::updateGlobalState(
     const uint32_t imageIndex,
     const VkCommandBuffer& commandBuffer,
     const float deltaTime
@@ -452,7 +450,7 @@ auto ShaderObject::updateGlobalState(
     );
 }
 
-auto ShaderObject::updateObject(
+auto MaterialShader::updateObject(
     const VkCommandBuffer& commandBuffer,
     const uint32_t imageIndex,
     const GeometryRenderData& geometryRenderData,
@@ -492,7 +490,7 @@ auto ShaderObject::updateObject(
     uint32_t descriptorCount { 0u };
 
     // Only do this if the descriptor has not yet been updated.
-    if (objectState.descriptorStates.at(descriptorIndex).generations.at(imageIndex) == static_cast<uint32_t>(-1)) {
+    if (objectState.descriptorStates.at(descriptorIndex).generations.at(imageIndex) == resources::global_invalidTextureGeneration) {
         const VkDescriptorBufferInfo descriptorBufferInfo {
             m_objectUniformBuffer->getHandle(), // buffer
             offset,                             // offset
@@ -529,18 +527,22 @@ auto ShaderObject::updateObject(
         };
 
         uint32_t& descriptorGeneration { objectState.descriptorStates.at(descriptorIndex).generations.at(imageIndex) };
+        uint32_t& descriptorId { objectState.descriptorStates.at(descriptorIndex).ids.at(imageIndex) };
 
         // If the texture hasn't been loaded yet, use the default.
         // TODO: Determine which use the texture has and pull appropriate default based on that.
         if (texture == nullptr || texture->getGeneration() == resources::global_invalidTextureGeneration) {
-            texture = m_defaultDiffuse;
+            texture = nullptr; // TODO: Refactor with texture system.
 
             // Reset the descriptor generation if using the default texture.
             descriptorGeneration = resources::global_invalidTextureGeneration;
         }
 
         // Check if the descriptor needs updating first.
-        if (texture != nullptr && (descriptorGeneration != texture->getGeneration() || descriptorGeneration == resources::global_invalidTextureGeneration)) {
+        if (
+            texture != nullptr &&
+            (descriptorId != texture->getId() || descriptorGeneration != texture->getGeneration() || descriptorGeneration == resources::global_invalidTextureGeneration)
+        ) {
             // Assign view to sampler.
             descriptorImageInfos.at(samplerIndex).imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             descriptorImageInfos.at(samplerIndex).imageView = texture->getImageView();
@@ -563,8 +565,9 @@ auto ShaderObject::updateObject(
             descriptorCount++;
 
             // Sync frame generation if not using a default texture.
-            if (texture->getGeneration() != static_cast<uint32_t>(-1)) {
+            if (texture->getGeneration() != resources::global_invalidTextureGeneration) {
                 descriptorGeneration = texture->getGeneration();
+                descriptorId = texture->getId();
             }
 
             descriptorIndex++;
@@ -595,15 +598,16 @@ auto ShaderObject::updateObject(
     );
 }
 
-auto ShaderObject::acquireResources() -> std::optional<ObjectId> {
+auto MaterialShader::acquireResources() -> std::optional<resources::ObjectId> {
     // TODO: Free list.
-    const ObjectId objectId { m_objectUniformBufferIndex };
+    const resources::ObjectId objectId { m_objectUniformBufferIndex };
     m_objectUniformBufferIndex++;
 
     ObjectState& objectState { m_objectStates.at(objectId) };
     for (uint32_t i { 0u }; i < objectState.descriptorStates.size(); i++) {
         for (uint32_t j { 0u }; j < 3u; j++) {
-            objectState.descriptorStates.at(i).generations.at(j) = static_cast<uint32_t>(-1);
+            objectState.descriptorStates.at(i).generations.at(j) = resources::global_invalidTextureGeneration;
+            objectState.descriptorStates.at(i).ids.at(j) = resources::global_invalidObjectId;
         }
     }
 
@@ -635,10 +639,10 @@ auto ShaderObject::acquireResources() -> std::optional<ObjectId> {
         return std::nullopt;
     }
 
-    return std::optional<ObjectId>(objectId);
+    return std::optional<resources::ObjectId>(objectId);
 }
 
-auto ShaderObject::releaseResources(const ObjectId objectId) -> void {
+auto MaterialShader::releaseResources(const resources::ObjectId objectId) -> void {
     ObjectState& objectState { m_objectStates.at(objectId) };
 
     const uint32_t descriptorSetCount { 3u };
@@ -659,14 +663,15 @@ auto ShaderObject::releaseResources(const ObjectId objectId) -> void {
 
     for (uint32_t i { 0u }; i < m_maxObjectCount; i++) {
         for (uint32_t j { 0u }; j < 3u; j++) {
-            objectState.descriptorStates.at(i).generations.at(j) = static_cast<uint32_t>(-1);
+            objectState.descriptorStates.at(i).generations.at(j) = resources::global_invalidTextureGeneration;
+            objectState.descriptorStates.at(i).ids.at(j) = resources::global_invalidObjectId;
         }
     }
 
     // TODO: Add the objectId to the free list.
 }
 
-auto ShaderObject::createShaderModule(
+auto MaterialShader::createShaderModule(
     Stage& stage,
     const std::string& name,
     const std::string& type,

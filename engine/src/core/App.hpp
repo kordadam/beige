@@ -4,6 +4,7 @@
 #include "Input.hpp"
 #include "../platform/Platform.hpp"
 #include "../renderer/RendererFrontend.hpp"
+#include "../systems/TextureSystem.hpp"
 #include "../IGame.hpp"
 #include "Clock.hpp"
 
@@ -34,7 +35,8 @@ private:
     std::shared_ptr<Input> m_input;
     std::shared_ptr<platform::Platform> m_platform;
     std::unique_ptr<Clock> m_clock;
-    std::unique_ptr<renderer::Frontend> m_rendererFrontend;
+    std::shared_ptr<renderer::Frontend> m_rendererFrontend;
+    std::unique_ptr<systems::Texture> m_textureSystem;
     std::unique_ptr<IGame> m_game;
 };
 

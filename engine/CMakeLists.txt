@@ -19,8 +19,8 @@ set(SRC
     src/platform/Platform.hpp
     src/platform/PlatformTypes.hpp
     src/platform/PlatformWin32.cpp
-    src/renderer/vulkan/shaders/VulkanShaderObject.cpp
-    src/renderer/vulkan/shaders/VulkanShaderObject.hpp
+    src/renderer/vulkan/shaders/VulkanMaterialShader.cpp
+    src/renderer/vulkan/shaders/VulkanMaterialShader.hpp
     src/renderer/vulkan/VulkanBackend.cpp
     src/renderer/vulkan/VulkanBackend.hpp
     src/renderer/vulkan/VulkanBuffer.cpp
@@ -53,6 +53,8 @@ set(SRC
     src/renderer/RendererFrontend.hpp
     src/renderer/RendererTypes.hpp
     src/resources/ITexture.hpp
+    src/systems/TextureSystem.cpp
+    src/systems/TextureSystem.hpp
     src/Defines.hpp
     src/Entry.hpp
     src/IGame.hpp

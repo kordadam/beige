@@ -11,7 +11,6 @@ namespace vulkan {
 
 Texture::Texture(
     const std::string& name,
-    const bool autoRelease,
     const int32_t width,
     const int32_t height,
     const int32_t channelCount,
@@ -22,7 +21,6 @@ Texture::Texture(
 ) :
 ITexture {
     name,
-    autoRelease,
     width,
     height,
     channelCount,
