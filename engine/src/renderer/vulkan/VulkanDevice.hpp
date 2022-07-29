@@ -38,6 +38,8 @@ public:
     auto getGraphicsQueue() const -> const VkQueue&;
     auto getPresentQueue() const -> const VkQueue&;
 
+    auto supportsDeviceLocalHostVisible() const -> bool;
+
     auto querySwapchainSupport(
         const VkPhysicalDevice& physicalDevice
     ) -> void;
@@ -89,6 +91,8 @@ private:
     VkPhysicalDeviceMemoryProperties m_physicalDeviceMemoryProperties;
 
     VkFormat m_depthFormat;
+
+    bool m_supportsDeviceLocalHostVisible;
 
     auto selectPhysicalDevice(
         const VkInstance& instance

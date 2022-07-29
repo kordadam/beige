@@ -32,7 +32,8 @@ m_graphicsCommandPool { 0 },
 m_physicalDeviceProperties { 0 },
 m_physicalDeviceFeatures { 0 },
 m_physicalDeviceMemoryProperties { 0 },
-m_depthFormat { VK_FORMAT_UNDEFINED } {
+m_depthFormat { VK_FORMAT_UNDEFINED },
+m_supportsDeviceLocalHostVisible { false } {
     if (!selectPhysicalDevice(instance)) {
         throw std::exception("Failed to create device!");
     }
@@ -204,6 +205,10 @@ auto Device::getPresentQueue() const -> const VkQueue& {
     return m_presentQueue;
 }
 
+auto Device::supportsDeviceLocalHostVisible() const -> bool {
+    return m_supportsDeviceLocalHostVisible;
+}
+
 auto Device::querySwapchainSupport(
     const VkPhysicalDevice& physicalDevice
 ) -> void {
@@ -338,6 +343,18 @@ auto Device::selectPhysicalDevice(
 
         VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
         vkGetPhysicalDeviceMemoryProperties(physicalDevice, &physicalDeviceMemoryProperties);
+
+        // Check if device supports local/host visible combo.
+        for (const VkMemoryType& memoryType : physicalDeviceMemoryProperties.memoryTypes) {
+            // Check each memory type to see if its bit is set to 1.
+            if (
+                (memoryType.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT != 0u) &&
+                (memoryType.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT != 0u)
+            ) {
+                m_supportsDeviceLocalHostVisible = true;
+                break;
+            }
+        }
 
         // TODO: These requirements should probably be driven by engine
         PhysicalDeviceRequirements physicalDeviceRequirements {

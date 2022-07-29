@@ -265,8 +265,14 @@ m_pipeline { nullptr } {
         VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
     };
 
+    const uint32_t deviceLocalBits {
+        m_device->supportsDeviceLocalHostVisible()
+        ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        : 0u
+    };
+
     const uint32_t globalUniformBufferMemoryPropertyFlags {
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
+        deviceLocalBits |
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     };
