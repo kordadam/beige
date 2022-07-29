@@ -17,6 +17,10 @@ public:
         glm::vec3 cameraRight;
         glm::vec3 cameraLook;
         bool cameraViewDirty;
+
+        // TODO: Temporary.
+        uint32_t textureIndex;
+        // TODO: End temporary.
     };
 
     IGame(const core::AppConfig& appConfig) :

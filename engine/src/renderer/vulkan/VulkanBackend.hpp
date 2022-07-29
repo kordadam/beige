@@ -49,7 +49,7 @@ public:
         const int32_t width,
         const int32_t height,
         const int32_t channelCount,
-        const std::vector<std::byte>& pixels,
+        const void* pixels,
         const bool hasTransparency
     ) -> std::shared_ptr<resources::ITexture> override;
     auto destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void override;

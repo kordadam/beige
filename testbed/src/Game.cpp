@@ -31,6 +31,18 @@ Game::~Game() {
 }
 
 auto Game::update(const float deltaTime) -> bool {
+    if (m_input->isKeyDown(bc::Key::F1)) {
+        m_state.textureIndex = 1u;
+    }
+
+    if (m_input->isKeyDown(bc::Key::F2)) {
+        m_state.textureIndex = 2u;
+    }
+
+    if (m_input->isKeyDown(bc::Key::F3)) {
+        m_state.textureIndex = 3u;
+    }
+
     // HACK: Temporary hack to move camera.
     if (m_input->isKeyDown(bc::Key::A) || m_input->isKeyDown(bc::Key::Left)) {
         cameraYaw(1.0f * deltaTime);

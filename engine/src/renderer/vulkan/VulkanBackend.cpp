@@ -284,13 +284,16 @@ m_geometryIndexOffset { 0u } {
     // Actual fences are not owned by this list
     m_imagesInFlight.resize(static_cast<uint32_t>(m_swapchain->getImages().size()), nullptr);
 
+    m_defaultDiffuse = createDefaultTexture();
+
     m_shaderObject = std::make_shared<ShaderObject>(
         m_allocationCallbacks,
         m_device,
         m_mainRenderPass,
         m_swapchain,
         m_framebufferWidth,
-        m_framebufferHeight
+        m_framebufferHeight,
+        std::dynamic_pointer_cast<Texture>(m_defaultDiffuse)
     );
 
     createBuffers();
@@ -361,6 +364,8 @@ Backend::~Backend() {
 
     core::Logger::info("Destroying shader object...");
     m_shaderObject.reset();
+
+    m_defaultDiffuse.reset();
 
     core::Logger::info("Destroying images in-flight...");
     m_imagesInFlight.clear();
@@ -687,7 +692,7 @@ auto Backend::createTexture(
     const int32_t width,
     const int32_t height,
     const int32_t channelCount,
-    const std::vector<std::byte>& pixels,
+    const void* pixels,
     const bool hasTransparency
 ) -> std::shared_ptr<resources::ITexture> {
     return std::make_shared<Texture>(
@@ -742,7 +747,7 @@ auto Backend::createDefaultTexture() -> std::shared_ptr<resources::ITexture> {
             static_cast<int32_t>(textureDimension),
             static_cast<int32_t>(textureDimension),
             static_cast<int32_t>(channels),
-            pixels,
+            pixels.data(),
             false,
             m_allocationCallbacks,
             m_device

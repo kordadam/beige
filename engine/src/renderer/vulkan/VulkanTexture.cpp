@@ -15,7 +15,7 @@ Texture::Texture(
     const int32_t width,
     const int32_t height,
     const int32_t channelCount,
-    const std::vector<std::byte>& pixels,
+    const void* pixels,
     const bool hasTransparency,
     VkAllocationCallbacks* allocationCallbacks,
     std::shared_ptr<Device> device
@@ -57,7 +57,7 @@ m_device { device } {
         true
     };
 
-    staging.loadData(0u, imageSize, 0u, pixels.data());
+    staging.loadData(0u, imageSize, 0u, pixels);
 
     // NOTE: Lots of assumptions here, different texture types will require different options here.
     const VkImageUsageFlags imageUsageFlags {

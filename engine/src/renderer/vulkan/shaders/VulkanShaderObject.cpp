@@ -20,7 +20,8 @@ ShaderObject::ShaderObject(
     std::shared_ptr<RenderPass> renderPass,
     std::shared_ptr<Swapchain> swapchain,
     const uint32_t framebufferWidth,
-    const uint32_t framebufferHeight
+    const uint32_t framebufferHeight,
+    std::shared_ptr<Texture> defaultDiffuse
 ) :
 m_allocationCallbacks { allocationCallbacks },
 m_device { device },
@@ -37,6 +38,7 @@ m_objectDescriptorSetLayout { VK_NULL_HANDLE },
 m_objectUniformBuffer { nullptr },
 m_objectUniformBufferIndex { 0u },
 m_objectStates { },
+m_defaultDiffuse { defaultDiffuse },
 m_pipeline { nullptr } {
     // Shader module initialization per stage.
     const std::array<std::string, m_stageCount> shaderTypeStrings { "vert", "frag" };
@@ -516,14 +518,23 @@ auto ShaderObject::updateObject(
     const uint32_t samplerCount { 1u };
     std::array<VkDescriptorImageInfo, 1u> descriptorImageInfos { };
     for (uint32_t samplerIndex { 0u }; samplerIndex < samplerCount; samplerIndex++) {
-        const std::shared_ptr<Texture> texture {
+        std::shared_ptr<Texture> texture {
             std::dynamic_pointer_cast<Texture>(geometryRenderData.textures.at(samplerIndex))
         };
 
         uint32_t& descriptorGeneration { objectState.descriptorStates.at(descriptorIndex).generations.at(imageIndex) };
 
+        // If the texture hasn't been loaded yet, use the default.
+        // TODO: Determine which use the texture has and pull appropriate default based on that.
+        if (texture == nullptr || texture->getGeneration() == resources::global_invalidTextureGeneration) {
+            texture = m_defaultDiffuse;
+
+            // Reset the descriptor generation if using the default texture.
+            descriptorGeneration = resources::global_invalidTextureGeneration;
+        }
+
         // Check if the descriptor needs updating first.
-        if (texture != nullptr && (descriptorGeneration != texture->getGeneration() || descriptorGeneration == static_cast<uint32_t>(-1))) {
+        if (texture != nullptr && (descriptorGeneration != texture->getGeneration() || descriptorGeneration == resources::global_invalidTextureGeneration)) {
             // Assign view to sampler.
             descriptorImageInfos.at(samplerIndex).imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             descriptorImageInfos.at(samplerIndex).imageView = texture->getImageView();

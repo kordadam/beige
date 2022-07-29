@@ -5,12 +5,14 @@
 #include "../VulkanBuffer.hpp"
 #include "../VulkanSwapchain.hpp"
 #include "../../RendererTypes.hpp"
+#include "../VulkanTexture.hpp"
 
 #include <vulkan/vulkan.h>
 
 #include <array>
 #include <string>
 #include <optional>
+#include <memory>
 
 namespace beige {
 namespace renderer {
@@ -43,7 +45,8 @@ public:
         std::shared_ptr<RenderPass> renderPass,
         std::shared_ptr<Swapchain> swapchain,
         const uint32_t framebufferWidth,
-        const uint32_t framebufferHeight
+        const uint32_t framebufferHeight,
+        std::shared_ptr<Texture> defaultDiffuse
     );
     ~ShaderObject();
 
@@ -101,6 +104,9 @@ private:
 
     // TODO: Make dynamic.
     std::array<ObjectState, m_maxObjectCount> m_objectStates;
+
+    // TODO: Pointers to default textures.
+    std::shared_ptr<Texture> m_defaultDiffuse;
 
     std::unique_ptr<Pipeline> m_pipeline;
 

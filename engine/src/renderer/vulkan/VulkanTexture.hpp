@@ -16,7 +16,7 @@ public:
         const int32_t width,
         const int32_t height,
         const int32_t channelCount,
-        const std::vector<std::byte>& pixels,
+        const void* pixels,
         const bool hasTransparency,
         VkAllocationCallbacks* allocationCallbacks,
         std::shared_ptr<Device> device

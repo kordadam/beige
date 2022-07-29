@@ -1,3 +1,6 @@
 [submodule "engine/src/external/glm"]
 	path = engine/src/external/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "engine/src/external/stb"]
+	path = engine/src/external/stb
+	url = https://github.com/nothings/stb.git

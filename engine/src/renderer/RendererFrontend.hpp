@@ -26,16 +26,16 @@ public:
 
     auto setView(const glm::mat4x4& view) -> void;
 
-    auto createTexture(
-        const std::string& name,
-        const bool autoRelease,
-        const int32_t width,
-        const int32_t height,
-        const int32_t channelCount,
-        const std::vector<std::byte>& pixels,
-        const bool hasTransparency
-    ) -> std::shared_ptr<resources::ITexture>;
-    auto destroyTexture(std::shared_ptr<resources::ITexture> texture) -> void;
+    // TODO: Temporary public.
+    // TODO: Temporary.
+    std::shared_ptr<resources::ITexture> m_testDiffuse;
+    // TODO: End temporary.
+
+    auto loadTexture(
+        const std::string& textureName,
+        std::shared_ptr<resources::ITexture>& texture
+    ) -> bool;
+    // TODO: End temporary public.
 
 private:
     std::unique_ptr<IBackend> m_backend;

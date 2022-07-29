@@ -158,6 +158,18 @@ auto App::run() -> bool {
             // HACK
             m_rendererFrontend->setView(m_game->getState().view);
 
+            static uint32_t currentTextureIndex = 0u;
+            if (m_game->getState().textureIndex == 1u && currentTextureIndex != 1u) {
+                currentTextureIndex = 1u;
+                m_rendererFrontend->loadTexture("wall", m_rendererFrontend->m_testDiffuse);
+            } else if (m_game->getState().textureIndex == 2u && currentTextureIndex != 2u) {
+                currentTextureIndex = 2u;
+                m_rendererFrontend->loadTexture("grass", m_rendererFrontend->m_testDiffuse);
+            } else if (m_game->getState().textureIndex == 3u && currentTextureIndex != 3u) {
+                currentTextureIndex = 3u;
+                m_rendererFrontend->loadTexture("dirt", m_rendererFrontend->m_testDiffuse);
+            }
+
             if (!m_game->render(static_cast<float>(deltaTime))) {
                 Logger::fatal("Game render failed, shutting down!");
                 break;
